@@ -6,13 +6,13 @@ yui_options = --line-break 512
 assets: $(targets)
 
 style.min.css: style.css
-	yuicompressor $(yui_options) -o $@ $<
+	yuicompressor $(yui_options) -o $@ $^
 
 style.css: style.scss
-	sass style.scss style.css
+	sass $^ $@
 
 script.min.js: script.js
-	yuicompressor $(yui_options) -o $@ $<
+	yuicompressor $(yui_options) -o $@ $^
 
 script.js: $(scripts)
 	cat $^ > $@
