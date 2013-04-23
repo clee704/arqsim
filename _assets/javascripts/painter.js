@@ -31,14 +31,14 @@ Painter.prototype.init = function () {
 };
 
 Painter.prototype._makeFrameColors = function () {
-  var i, r, g;
+  var i,
+      r,
+      g;
   for (i = 0; i <= 128; ++i) {
     r = i.toString(16);
     g = (128 - i).toString(16);
-    if (r.length === 1)
-      r = '0' + r;
-    if (g.length === 1)
-      g = '0' + g;
+    if (r.length === 1) r = '0' + r;
+    if (g.length === 1) g = '0' + g;
     this.frameColors[i] = '#' + r + g + '00';
   }
 };
@@ -243,8 +243,9 @@ Painter.prototype.drawReceivedData = function () {
   ctx.fillText('Data forwarded to the upper layer:', x, y);
   if (receivedData.length > 0) {
     t = receivedData[0];
-    if (receivedData.length > 1)
+    if (receivedData.length > 1) {
       t += ' to ' + receivedData[receivedData.length - 1];
+    }
     ctx.fillText(t, x, y + h);
   };
   ctx.restore();
