@@ -8,7 +8,7 @@ function Painter(system, receivedData) {
   this.margin = 50;
   this.nodeWidth = 240;
   this.nodeHeight = 50;
-  this.ctx = undefined;
+  this.ctx = null;
   this.statusColors = {
     ready: 'transparent',
     error: 'transparent',

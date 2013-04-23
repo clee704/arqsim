@@ -10,14 +10,14 @@ function Node(w, a) {
   this.stats = {rx: 'ready', rxiframes: 0};
 
   // follwing variables must be set before using this instance
-  this.clock = undefined;
-  this.txlink = undefined;
-  this.rxlink = undefined;
+  this.clock = null;
+  this.txlink = null;
+  this.rxlink = null;
 
   // following variables must be defined in a subclass
-  this.s = undefined; // # of sequence numbers
-  this.txtimers = undefined;
-  this.rxbuf = undefined;
+  this.s = null; // # of sequence numbers
+  this.txtimers = null;
+  this.rxbuf = null;
 
   // following methods must be implemented in a subclass
   // _recvI, _recvS, _checkTimeout, _setTimer
