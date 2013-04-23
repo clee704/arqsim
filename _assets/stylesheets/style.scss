@@ -3,10 +3,13 @@
 body {
   color: #545454;
   padding: 20px;
-  font-family: "Noto Sans", "Helvetica Neue", Helvetica, sans-serif;
   @media (max-width: 640px) {
     padding: 0 10px 10px;
   }
+}
+
+body, input, button, select, textarea {
+  font-family: "Noto Sans", "Helvetica Neue", Helvetica, sans-serif;
 }
 
 h1 {
