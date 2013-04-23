@@ -1,0 +1,65 @@
+@import "base";
+
+body {
+  color: #545454;
+  padding: 20px;
+  font-family: "Noto Sans", "Helvetica Neue", Helvetica, sans-serif;
+  @media (max-width: 640px) {
+    padding: 0 10px 10px;
+  }
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 22px;
+}
+
+.ui-slider {
+  @extend %input-dimensions;
+  background: white;
+  border-color: #ccc;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  position: relative;
+  + .help-block {
+    margin-top: 10px;
+  }
+}
+
+.ui-slider-handle {
+  width: 12px;
+  height: 34px;
+  top: -4px;
+  margin-left: -7px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 2;
+  cursor: default;
+  background-image: -webkit-linear-gradient(top, white, #e6e6e6);
+  background-image: linear-gradient(to bottom, white, #e6e6e6);
+}
+
+output {
+  @extend %input-dimensions;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+.container {
+  max-width: 1160px;
+}
+
+@media (min-width: 1200px) {
+  .well {
+    float: left;
+    max-width: 460px;
+  }
+  #view {
+    float: right;
+  }
+}

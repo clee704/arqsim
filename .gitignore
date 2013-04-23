@@ -1,0 +1,5 @@
+_coverage
+.sass-cache
+style.min.css
+style.css
+script.min.js

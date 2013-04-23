@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <meta content='width=device-width, initial-scale=1, maximum-scale=1' name='viewport'>
+  <title>ARQ Simulation</title>
+  <link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700' rel='stylesheet'>
+  <link href='bootstrap/css/bootstrap.min.css' rel='stylesheet'>
+  <link href='bootstrap/css/bootstrap-responsive.min.css' rel='stylesheet'>
+  <link href='style.css' rel='stylesheet'>
+  <!--[if lt IE 9]>
+    <script src='//html5shiv.googlecode.com/svn/trunk/html5.js'></script>
+  <![endif]-->
+</head>
+<body>
+  <div class='container'>
+    <header>
+      <h1>ARQ Simulation</h1>
+      <p>
+        <i>by <a href='http://clee.kr/'>Choongmin Lee</a> on <time datetime='2011-05-13' pubdate>May 13, 2011</time></i>
+      </p>
+    </header>
+    <h2>Background</h2>
+    <p>
+      See <a href='http://www.ee.hacettepe.edu.tr/~aktas/arq_simulator/'>another ARQ simulator</a> for theoretical background. Note that the utilization for Go-Back-N ARQ may be lower than the theoretical value since the assumption of error-free retransmissions is not implemented in this simulation. However, ACK packets are assumed to be transmitted without errors.
+    </p>
+    <div class='well'>
+      <form class='form-horizontal'>
+        <div class='control-group'>
+          <label class='control-label' for='gbn'>Protocol</label>
+          <div class='controls'>
+            <label class='radio' for='gbn'>
+              <input checked id='gbn' name='protocol' type='radio' value='gbn'>
+              Go-Back-N
+            </label>
+            <label class='radio' for='sr'>
+              <input disabled id='sr' name='protocol' type='radio' value='sr'>
+              Selective Reject
+            </label>
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label' for='w' title='window size'>
+            <var>W</var> =
+          </label>
+          <div class='controls'>
+            <input id='w' max='1023' min='1' type='number' value='31'>
+            <span class='help-block'>Window size</span>
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label' for='a'>
+            <var>t</var><sub>prop</sub> / <var>t</var><sub>trans</sub> =
+          </label>
+          <div class='controls'>
+            <input id='a' max='1000' min='1' type='number' value='15'>
+            <span class='help-block'>Ratio of propagation time to transmission time</span>
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label' for='p'>
+            <var>P</var> =
+          </label>
+          <div class='controls'>
+            <input id='p' max='1' min='0' step='any' type='number' value='0.05'>
+            <span class='help-block'>
+              Frame error rate;
+              probability that a single frame is transmitted with errors
+            </span>
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label'>
+            <var>U</var> =
+          </label>
+          <div class='controls'>
+            <output id='u'>0</output>
+            <span class='help-block'>Theoretical utilization</span>
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label' for='framerate'>Animation rate</label>
+          <div class='controls'>
+            <select id='framerate'>
+              <option value='15'>15</option>
+              <option value='30'>30</option>
+              <option selected value='60'>60</option>
+            </select>
+            FPS
+          </div>
+        </div>
+        <div class='control-group'>
+          <label class='control-label' for='speed'>Simulation speed</label>
+          <div class='controls'>
+            <div id='speed-slider'></div>
+            <span class='help-block'>
+              <span id='speed-value'></span>
+              simulation time unit per second
+            </span>
+          </div>
+        </div>
+        <div class='control-group'>
+          <div class='controls'>
+            <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
+            <button accesskey='p' class='btn' id='pause'>Pause</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div id='view'></div>
+  </div>
+  <script src='//ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js'></script>
+  <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js'></script>
+  <script src='script.min.js'></script>
+</body>
+</html>
