@@ -18,6 +18,7 @@ function App() {
   this.painter = null;
   this.loopTimer = null;
   this.resultRow = null;
+  this.updateTimer = null;
 }
 
 App.prototype.init = function () {
@@ -74,6 +75,8 @@ App.prototype._updateUtilization = function () {
 
 App.prototype.start = function () {
   clearTimeout(this.loopTimer);
+  clearTimeout(this.updateTimer);
+
   this._createObjects();
   this.dataseq = 1;
   this.receivedData = [];
@@ -81,14 +84,17 @@ App.prototype.start = function () {
   this.painter = new Painter(this.system, this.receivedData);
   this.painter.init();
 
-  this._newResultRow();
   this.started = true;
   this.pause(false);
   $('#pause').show();
   $('#start').text('Start new');
 
   var self = this;
-  setInterval(function () { self._updateResultsTable(); }, 1000);
+  this._newResultRow();
+  this._updateResultsTable();
+  this.updateTimer = setInterval(function () {
+    self._updateResultsTable();
+  }, 1000);
 };
 
 App.prototype._createObjects = function() {
