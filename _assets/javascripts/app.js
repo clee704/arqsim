@@ -73,6 +73,8 @@ App.prototype.start = function () {
 
   this.started = true;
   this.pause(false);
+  $('#pause').show();
+  $('#start').text('Start new');
 };
 
 App.prototype.pause = function (paused) {
