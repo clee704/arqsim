@@ -64,8 +64,6 @@ App.prototype.start = function () {
 
   this.painter = new Painter(this.system, this.receivedData);
   this.painter.init();
-  this.painter.drawBackground();
-  this.painter.drawNodes();
 
   this.started = true;
   this.pause(false);
@@ -154,13 +152,7 @@ App.prototype._tick = function () {
     alert(ex);
     throw ex;  // brutal way to stop the loop
   }
-  this.painter.drawBackground();
-  this.painter.drawPrimaryLink();
-  this.painter.drawSecondaryLink();
-  this.painter.drawSenderWindow();
-  this.painter.drawReceiverWindow();
-  this.painter.drawNodes();
-  this.painter.drawStatistics();
+  this.painter.drawAll();
 };
 
 // Implicitly called by this.clock.advance() in this._tick()

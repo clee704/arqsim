@@ -24,10 +24,12 @@ Painter.prototype.init = function () {
   canvas.width = this.width;
   canvas.height = this.height;
   this.ctx = canvas.getContext('2d');
-  this.drawBackground();
+  this._drawBackground();
   $('#display').empty();
   $('#display').append(canvas);
   this._makeFrameColors();
+  this._drawBackground();
+  this._drawNodes();
 };
 
 Painter.prototype._makeFrameColors = function () {
@@ -47,7 +49,17 @@ Painter.prototype.setFps = function (fps) {
   this.fps = fps;
 };
 
-Painter.prototype.drawBackground = function () {
+Painter.prototype.drawAll = function () {
+  this._drawBackground();
+  this._drawPrimaryLink();
+  this._drawSecondaryLink();
+  this._drawSenderWindow();
+  this._drawReceiverWindow();
+  this._drawNodes();
+  this._drawStatistics();
+};
+
+Painter.prototype._drawBackground = function () {
   ctx = this.ctx;
   ctx.save();
   ctx.fillStyle = '#808080';
@@ -55,7 +67,7 @@ Painter.prototype.drawBackground = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawNodes = function () {
+Painter.prototype._drawNodes = function () {
   var ctx = this.ctx,
       w = this.nodeWidth,
       h = this.nodeHeight,
@@ -86,7 +98,7 @@ Painter.prototype.drawNodes = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawPrimaryLink = function () {
+Painter.prototype._drawPrimaryLink = function () {
   var ctx = this.ctx,
       system = this.system,
       frameColors = this.frameColors,
@@ -117,7 +129,7 @@ Painter.prototype.drawPrimaryLink = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawSecondaryLink = function () {
+Painter.prototype._drawSecondaryLink = function () {
   var ctx = this.ctx,
       system = this.system,
       w = this.nodeWidth / 3,
@@ -143,7 +155,7 @@ Painter.prototype.drawSecondaryLink = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawSenderWindow = function () {
+Painter.prototype._drawSenderWindow = function () {
   var ctx = this.ctx,
       sender = this.system.node1,
       width = this.width,
@@ -171,7 +183,7 @@ Painter.prototype.drawSenderWindow = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawReceiverWindow = function () {
+Painter.prototype._drawReceiverWindow = function () {
   var ctx = this.ctx,
       receiver = this.system.node2,
       width = this.width,
@@ -201,7 +213,7 @@ Painter.prototype.drawReceiverWindow = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawStatistics = function () {
+Painter.prototype._drawStatistics = function () {
   var ctx = this.ctx,
       system = this.system,
       clock = system.clock,
@@ -228,7 +240,7 @@ Painter.prototype.drawStatistics = function () {
   ctx.restore();
 };
 
-Painter.prototype.drawReceivedData = function () {
+Painter.prototype._drawReceivedData = function () {
   var ctx = this.ctx,
       receivedData = this.receivedData,
       h = 18,
