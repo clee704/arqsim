@@ -17,6 +17,7 @@ function App() {
   // others
   this.painter = null;
   this.loopTimer = null;
+  this.resultRow = null;
 }
 
 App.prototype.init = function () {
@@ -43,7 +44,6 @@ App.prototype._bindListeners = function () {
   $('#parameters input').keydown(function (e) {
     var RETURN = 13;
     if (e.which === RETURN) self.start();
-    return false;
   });
   $('#pause').click(function () {
     self.pause(!self.paused);
@@ -81,6 +81,7 @@ App.prototype.start = function () {
   this.painter = new Painter(this.system, this.receivedData);
   this.painter.init();
 
+  this._getNewResultRow();
   this.started = true;
   this.pause(false);
   $('#pause').show();
@@ -96,7 +97,10 @@ App.prototype._createObjects = function() {
   this.clock.addEvent({
     time: this.clock.dtMin,
     interval: 1,
-    func: function () { self._operate(); }
+    func: function () {
+      self._operate();
+      self._updateResultsTable();
+    }
   });
   if (vars.protocol == 'gbn') {
     this.sender = new GbnNode(vars.w, vars.a);
@@ -187,4 +191,24 @@ App.prototype._operate = function () {
   } catch (e) {
     // sender may throw an error if its buffer is full
   }
+};
+
+App.prototype._getNewResultRow = function () {
+  var tmpl = '<tr>' +
+      '<td class="Protocol"></td>' +
+      '<td class="w"></td>' +
+      '<td class="T"></td>' +
+      '<td class="a"></td>' +
+      '<td class="P"></td>' +
+      '<td class="U"></td>' +
+      '<td class="t"></td>' +
+      '</tr>';
+  $('#results tbody td.empty').remove();
+  this.resultRow = $(tmpl).prependTo($('#results tbody'));
+};
+
+App.prototype._updateResultsTable = function () {
+  var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR';
+  this.resultRow.find('.Protocol').text(protocol);
+  this.resultRow.find('.w').text(this.sender.w);
 };
