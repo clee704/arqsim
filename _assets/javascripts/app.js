@@ -56,6 +56,22 @@ App.prototype._updateDisplays = function () {
   this.setSimulationSpeed($('#speed-slider').slider('value'));
 };
 
+App.prototype._updateUtilization = function () {
+  var vars = this.getVariables(),
+      u = 0;
+  if (vars.protocol == 'gbn') {
+    if (vars.w >= 1 + 2 * vars.a) {
+      u = (1 - vars.p) / (1 + 2 * vars.a * vars.p);
+    } else {
+      u = vars.w * (1 - vars.p) /
+          ((1 + 2 * vars.a) * (1 - vars.p + vars.w * vars.p));
+    }
+  } else {
+    // TODO
+  }
+  $('#u').text(u);
+};
+
 App.prototype.start = function () {
   clearTimeout(this.loopTimer);
   this._createObjects();
@@ -171,20 +187,4 @@ App.prototype._operate = function () {
   } catch (e) {
     // sender may throw an error if its buffer is full
   }
-};
-
-App.prototype._updateUtilization = function () {
-  var vars = this.getVariables(),
-      u = 0;
-  if (vars.protocol == 'gbn') {
-    if (vars.w >= 1 + 2 * vars.a) {
-      u = (1 - vars.p) / (1 + 2 * vars.a * vars.p);
-    } else {
-      u = vars.w * (1 - vars.p) /
-          ((1 + 2 * vars.a) * (1 - vars.p + vars.w * vars.p));
-    }
-  } else {
-    // TODO
-  }
-  $('#u').text(u);
 };
