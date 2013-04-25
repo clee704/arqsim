@@ -33,7 +33,6 @@ App.prototype.init = function () {
   $('#parameters input').keydown(function (e) {
     var RETURN = 13;
     if (e.which === RETURN) self.start();
-    return false;
   });
   $('#pause').click(function () {
     self.pause(!self.paused);
