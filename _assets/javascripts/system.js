@@ -1,6 +1,6 @@
 function System(a, p, node1, node2) {
-  this.a = a; // ratio of propagation delay relative to transmission time
-  this.p = p; // frame error rate
+  this.a = a;  // ratio of propagation delay relative to transmission time
+  this.p = p;  // frame error rate
   this.node1 = node1;
   this.node2 = node2;
   this.link1 = new Link(a, p);

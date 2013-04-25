@@ -1,12 +1,12 @@
 function Node(w, a) {
-  this.w = w; // window size
-  this.a = a; // ratio of propagation delay relative to transmission time
+  this.w = w;  // window size
+  this.a = a;  // ratio of propagation delay relative to transmission time
   this.txbuf = new CircularBuffer(w);
   this.txbase = 0;
-  this.txnext = 0; // sequence number of the first unsent frame
-  this.txuser = 0; // index of the first available slot in txbuf
+  this.txnext = 0;  // sequence number of the first unsent frame
+  this.txuser = 0;  // index of the first available slot in txbuf
   this.rxbase = 0;
-  this.rxuser = 0; // index + 1 of the last received frame in rxbuf
+  this.rxuser = 0;  // index + 1 of the last received frame in rxbuf
   this.stats = {rx: 'ready', rxiframes: 0};
 
   // follwing variables must be set before using this instance
@@ -15,7 +15,7 @@ function Node(w, a) {
   this.rxlink = null;
 
   // following variables must be defined in a subclass
-  this.s = null; // # of sequence numbers
+  this.s = null;  // # of sequence numbers
   this.txtimers = null;
   this.rxbuf = null;
 
@@ -103,11 +103,11 @@ Node.prototype._send = function () {
 
 function GbnNode(w, a) {
   Node.call(this, w, a);
-  this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2)); // # of sequence numbers
+  this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2));  // # of sequence numbers
   this.txtimers = new CircularBuffer(w);
   this.txtimeout = a * 2 + 2;
-  this.rxbuf = new CircularBuffer(1); // dummy
-  this.rxrejd = false; // needed to send REJ only once per go-back
+  this.rxbuf = new CircularBuffer(1);  // dummy
+  this.rxrejd = false;  // needed to send REJ only once per go-back
 }
 GbnNode.prototype = new Node;
 GbnNode.prototype.constructor = GbnNode;
