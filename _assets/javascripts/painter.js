@@ -25,8 +25,8 @@ Painter.prototype.init = function () {
   canvas.height = this.height;
   this.ctx = canvas.getContext('2d');
   this.drawBackground();
-  $('#view').empty();
-  $('#view').append(canvas);
+  $('#display').empty();
+  $('#display').append(canvas);
   this._makeFrameColors();
 };
 

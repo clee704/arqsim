@@ -14,7 +14,7 @@ function App() {
 
 App.prototype.init = function () {
   var self = this;
-  $('[name=protocol], #w, #a, #p').change(function () {
+  $('#protocol, #w, #a, #p').change(function () {
     self._updateUtilization();
   });
   this._updateUtilization();
@@ -83,7 +83,7 @@ App.prototype.pause = function (paused) {
 
 App.prototype.getVariables = function () {
   return {
-    protocol: $('[name=protocol]:checked').val(),
+    protocol: $('#protocol option:selected').val(),
     w: this._getVariable($('#w'), true),
     a: this._getVariable($('#a'), true),
     p: this._getVariable($('#p'))

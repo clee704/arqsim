@@ -16,108 +16,125 @@
   <![endif]-->
 </head>
 <body>
-  <div class='container'>
+  <div class='container-fluid'>
     <header>
       <h1>ARQ Simulation</h1>
       <p>
         <i>by <a href='http://clee.kr/'>Choongmin Lee</a> on <time datetime='2011-05-13'>May 13, 2011</time></i>
       </p>
     </header>
-    <h2>Background</h2>
-    <p>
-      See <a href='http://www.ee.hacettepe.edu.tr/~aktas/arq_simulator/'>another ARQ simulator</a> for theoretical background. Note that the utilization for Go-Back-N ARQ may be lower than the theoretical value since the assumption of error-free retransmissions is not implemented in this simulation. However, ACK packets are assumed to be transmitted without errors.
-    </p>
-    <div class='well'>
-      <form class='form-horizontal'>
-        <div class='control-group'>
-          <label class='control-label' for='gbn'>Protocol</label>
-          <div class='controls'>
-            <label class='radio' for='gbn'>
-              <input checked id='gbn' name='protocol' type='radio' value='gbn'>
-              Go-Back-N
-            </label>
-            <label class='radio' for='sr'>
-              <input disabled id='sr' name='protocol' type='radio' value='sr'>
-              Selective Reject
-            </label>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='w' title='window size'>
-            <var>W</var> =
-          </label>
-          <div class='controls'>
-            <input id='w' max='1023' min='1' type='number' value='31'>
-            <span class='help-block'>Window size</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='a'>
-            <var>t</var><sub>prop</sub> / <var>t</var><sub>trans</sub> =
-          </label>
-          <div class='controls'>
-            <input id='a' max='1000' min='1' type='number' value='15'>
-            <span class='help-block'>Ratio of propagation time to transmission time</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='p'>
-            <var>P</var> =
-          </label>
-          <div class='controls'>
-            <input id='p' max='1' min='0' step='any' type='number' value='0.05'>
-            <span class='help-block'>
-              Frame error rate;
-              probability that a single frame is transmitted with errors
-            </span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label'>
-            <var>U</var> =
-          </label>
-          <div class='controls'>
-            <output id='u'>0</output>
-            <span class='help-block'>Theoretical utilization</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='framerate'>Animation rate</label>
-          <div class='controls'>
-            <select id='framerate'>
-              <option value='15'>15</option>
-              <option value='30'>30</option>
-              <option selected value='60'>60</option>
-            </select>
-            FPS
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label'>Simulation speed</label>
-          <div class='controls'>
-            <div id='speed-slider'></div>
-            <span class='help-block'>
-              <span id='speed-value'></span>
-              simulation time unit per second
-            </span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <div class='controls'>
+    <div class='row-fluid'>
+      <div class='span12'>
+        <form id='controls' class='clearfix' data-squery='min-width:430px=float min-width:560px=form-inline'>
+          <div class='buttons'>
             <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
             <button accesskey='p' class='btn' id='pause'>Pause</button>
           </div>
-        </div>
-      </form>
+          <div class='slider'>
+            <label>Simulation speed</label>
+            <div id='speed-slider'></div>
+            <span class='help-inline'>
+              <span id='speed-value'></span>x
+            </span>
+          </div>
+        </form>
+      </div>
     </div>
-    <div id='view'></div>
+    <div class='row-fluid'>
+      <div class='span4'>
+        <h2 data-toggle='collapse' data-target='#parameters'>Parameters</h2>
+        <div id='parameters' class='collapse in'>
+          <div class='well'>
+            <form data-squery='min-width:400px=help-column'>
+              <div class='param clearfix'>
+                <label for='protocol'>Protocol:</label>
+                <select id='protocol' class='input-medium'>
+                  <option value='gbn'>Go-Back-N</option>
+                  <option value='sr' disabled>Selective Reject</option>
+                </select>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='w' title='window size'><var>W</var> =</label>
+                  <input id='w' max='1023' min='1' type='number' value='31' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Window size
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='a'><var>a</var> =</label>
+                  <input id='a' max='1000' min='1' type='number' value='15' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Ratio of propagation time to transmission time
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label class='control-label' for='p'><var>P</var> =</label>
+                  <input id='p' max='1' min='0' step='any' type='number' value='0.05' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Frame error rate;
+                  probability that a single frame is transmitted with errors
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label class='control-label'><var>U</var> =</label>
+                  <output id='u' class='input-small'>0</output>
+                </div>
+                <div class='help-block'>
+                  Theoretical utilization
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class='span8'>
+        <h2 data-toggle='collapse' data-target='#display'>Animation</h2>
+        <div id='display' class='collapse in'></div>
+      </div>
+    </div>
+    <h2 data-toggle='collapse' data-target='#results'>Results</h2>
+    <div id='results' class='collapse in'>
+      <table class='table table-bordered table-hover'>
+        <thead>
+          <tr>
+            <th>Protocol</th>
+            <th><var>W</var></th>
+            <th><var>T</var></th>
+            <th><var>a</var></th>
+            <th><var>P</var></th>
+            <th><var>U</var></th>
+            <th><var>t</var></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class='empty' colspan='7'>No results</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h2 data-toggle='collapse' data-target='#backgrounds'>Background</h2>
+    <div id='backgrounds' class='collapse in'>
+      <p>
+        See <a href='http://www.ee.hacettepe.edu.tr/~aktas/arq_simulator/'>another ARQ simulator</a> for theoretical background. Note that the utilization for Go-Back-N ARQ may be lower than the theoretical value since the assumption of error-free retransmissions is not implemented in this simulation. However, ACK packets are assumed to be transmitted without errors.
+      </p>
+    </div>
     <footer>
       <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
     </footer>
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>
   <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js'></script>
+  <script src='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js'></script>
   {% javascript_asset_tag script %}
+    - /_assets/library/responsive-containers.min.js
     - /_assets/javascripts/util.js
     - /_assets/javascripts/heap.js
     - /_assets/javascripts/circularbuffer.js
