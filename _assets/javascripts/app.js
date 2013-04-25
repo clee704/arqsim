@@ -81,7 +81,7 @@ App.prototype.start = function () {
   this.painter = new Painter(this.system, this.receivedData);
   this.painter.init();
 
-  this._getNewResultRow();
+  this._newResultRow();
   this.started = true;
   this.pause(false);
   $('#pause').show();
@@ -193,7 +193,7 @@ App.prototype._operate = function () {
   }
 };
 
-App.prototype._getNewResultRow = function () {
+App.prototype._newResultRow = function () {
   var tmpl = '<tr class="current">' +
       '<td class="Protocol"></td>' +
       '<td class="w"></td>' +
