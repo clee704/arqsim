@@ -52,12 +52,12 @@ output {
     content: ">";
     position: absolute;
     right: 0;
-    @include transform(rotate(90deg) scale(0.67, 1));
+    @include transform(rotate(-90deg) scale(0.6, 1));
     @include transition-transform(0.4s);
   }
   &.collapsed {
     &:after {
-      @include transform(rotate(0deg) scale(0.67, 1));
+      @include transform(rotate(90deg) scale(0.6, 1));
     }
   }
 }
