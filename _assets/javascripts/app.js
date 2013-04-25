@@ -1,23 +1,34 @@
 function App() {
+  // objects
   this.clock = null;
   this.sender = null;
   this.receiver = null;
   this.system = null;
-  this.loopTimer = null;
-  this.targetSimulationSpeed = null;
-  this.started = null;
-  this.paused = null;
+
+  // data
   this.dataseq = null;
   this.receivedData = null;
+
+  // app states
+  this.started = null;
+  this.paused = null;
+  this.simulationSpeed = null;
+
+  // others
   this.painter = null;
+  this.loopTimer = null;
 }
 
 App.prototype.init = function () {
+  this._bindListeners();
+  this._updateDisplays();
+};
+
+App.prototype._bindListeners = function () {
   var self = this;
   $('#protocol, #w, #a, #p').change(function () {
     self._updateUtilization();
   });
-  this._updateUtilization();
   $('#framerate').change(function () { self.setFps($(this).val()); });
   $('#speed-slider').slider({
     value: 0,
@@ -25,7 +36,6 @@ App.prototype.init = function () {
     max: 250,
     slide: function (e, ui) { self.setSimulationSpeed(ui.value); }
   });
-  this.setSimulationSpeed($('#speed-slider').slider('value'));
   $('#start').click(function () {
     self.start();
     return false;
@@ -41,11 +51,31 @@ App.prototype.init = function () {
   });
 };
 
+App.prototype._updateDisplays = function () {
+  this._updateUtilization();
+  this.setSimulationSpeed($('#speed-slider').slider('value'));
+};
+
 App.prototype.start = function () {
+  clearTimeout(this.loopTimer);
+  this._createObjects();
+  this.dataseq = 1;
+  this.receivedData = [];
+
+  this.painter = new Painter(this.system, this.receivedData);
+  this.painter.init();
+  this.painter.drawBackground();
+  this.painter.drawNodes();
+
+  this.started = true;
+  this.pause(false);
+  $('#pause').show();
+  $('#start').text('Start new');
+};
+
+App.prototype._createObjects = function() {
   var self = this,
       vars = this.getVariables();
-
-  clearTimeout(this.loopTimer);
 
   // start the simulation at 1 second before operating
   this.clock = new Clock(-1, 13);
@@ -63,18 +93,6 @@ App.prototype.start = function () {
   }
   this.system = new System(vars.a, vars.p, this.sender, this.receiver);
   this.system.setClock(this.clock);
-
-  this.dataseq = 1;
-  this.receivedData = [];
-  this.painter = new Painter(this.system, this.receivedData);
-  this.painter.init();
-  this.painter.drawBackground();
-  this.painter.drawNodes();
-
-  this.started = true;
-  this.pause(false);
-  $('#pause').show();
-  $('#start').text('Start new');
 };
 
 App.prototype.pause = function (paused) {
@@ -115,8 +133,8 @@ App.prototype.setSimulationSpeed = function (value) {
       value > $('#speed-slider').slider('option', 'max')) {
     return;
   }
-  this.targetSimulationSpeed = Math.pow(10, value / 50);
-  $('#speed-value').html(this.targetSimulationSpeed.toFixed(1));
+  this.simulationSpeed = Math.pow(10, value / 50);
+  $('#speed-value').html(this.simulationSpeed.toFixed(1));
   $('#speed-slider').slider('value', value);
 };
 
@@ -131,7 +149,7 @@ App.prototype._startLoop = function () {
 
 App.prototype._tick = function () {
   try {
-    this.clock.advance(this.targetSimulationSpeed / this.painter.fps);
+    this.clock.advance(this.simulationSpeed / this.painter.fps);
   } catch (ex) {
     alert(ex);
     throw ex;  // brutal way to stop the loop
