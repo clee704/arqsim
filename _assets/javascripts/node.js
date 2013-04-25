@@ -108,7 +108,8 @@ Node.prototype._send = function () {
 
 function GbnNode(w, a) {
   Node.call(this, w, a);
-  this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2));  // # of sequence numbers
+  // # of sequence numbers
+  this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2));
   this.txtimers = new CircularBuffer(w);
   this.txtimeout = a * 2 + 2;
   this.rxbuf = new CircularBuffer(1);  // dummy
