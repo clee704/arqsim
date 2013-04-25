@@ -136,6 +136,11 @@ App.prototype.setSimulationSpeed = function (value) {
   $('#speed-slider').slider('value', value);
 };
 
+// Call this._tick() this.painter.fps times per second.
+// If the computation is too heavy (usually due to too high simulation speed),
+// this._tick() may exceed the time it was assigned
+// (1 / this.painter.fps seconds). In that case, both frame rate and simulation
+// speed can be lower than user-specified value.
 App.prototype._startLoop = function () {
   var self = this,
       currentLoopTime = Date.now();
@@ -155,7 +160,8 @@ App.prototype._tick = function () {
   this.painter.drawAll();
 };
 
-// Implicitly called by this.clock.advance() in this._tick()
+// Implicitly called by this.clock.advance() in this._tick().
+// It mocks two nodes one sending increasing numbers every second to the other.
 App.prototype._operate = function () {
   this.receivedData = this.receiver.recv();
   // do something
