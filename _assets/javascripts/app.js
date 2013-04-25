@@ -57,14 +57,14 @@ App.prototype._updateDisplays = function () {
 };
 
 App.prototype._updateUtilization = function () {
-  var vars = this.getVariables(),
+  var params = this.getParameters(),
       u = 0;
-  if (vars.protocol == 'gbn') {
-    if (vars.w >= 1 + 2 * vars.a) {
-      u = (1 - vars.p) / (1 + 2 * vars.a * vars.p);
+  if (params.protocol == 'gbn') {
+    if (params.w >= 1 + 2 * params.a) {
+      u = (1 - params.p) / (1 + 2 * params.a * params.p);
     } else {
-      u = vars.w * (1 - vars.p) /
-          ((1 + 2 * vars.a) * (1 - vars.p + vars.w * vars.p));
+      u = params.w * (1 - params.p) /
+          ((1 + 2 * params.a) * (1 - params.p + params.w * params.p));
     }
   } else {
     // TODO
@@ -93,7 +93,7 @@ App.prototype.start = function () {
 
 App.prototype._createObjects = function() {
   var self = this,
-      vars = this.getVariables();
+      params = this.getParameters();
 
   // start the simulation at 1 second before operating
   this.clock = new Clock(-1, 13);
@@ -102,14 +102,14 @@ App.prototype._createObjects = function() {
     interval: 1,
     func: function () { self._operate(); }
   });
-  if (vars.protocol == 'gbn') {
-    this.sender = new GbnNode(vars.w, vars.a);
-    this.receiver = new GbnNode(vars.w, vars.a);
+  if (params.protocol == 'gbn') {
+    this.sender = new GbnNode(params.w, params.a);
+    this.receiver = new GbnNode(params.w, params.a);
   } else {
-    this.sender = new SrNode(vars.w, vars.a);
-    this.receiver = new SrNode(vars.w, vars.a);
+    this.sender = new SrNode(params.w, params.a);
+    this.receiver = new SrNode(params.w, params.a);
   }
-  this.system = new System(vars.a, vars.p, this.sender, this.receiver);
+  this.system = new System(params.a, params.p, this.sender, this.receiver);
   this.system.setClock(this.clock);
 };
 
@@ -119,25 +119,25 @@ App.prototype.pause = function (paused) {
   $('#pause').html(this.paused ? 'Resume' : 'Pause');
 };
 
-App.prototype.getVariables = function () {
+App.prototype.getParameters = function () {
   return {
     protocol: $('#protocol option:selected').val(),
-    w: this._getVariable($('#w'), true),
-    a: this._getVariable($('#a'), true),
-    p: this._getVariable($('#p'))
+    w: this._getParameter($('#w'), true),
+    a: this._getParameter($('#a'), true),
+    p: this._getParameter($('#p'))
   };
 };
 
-App.prototype._getVariable = function ($elem, round) {
-  var v = Number($elem.val().replace(/[^0-9.]/g, '')),
+App.prototype._getParameter = function ($elem, round) {
+  var param = Number($elem.val().replace(/[^0-9.]/g, '')),
       min = Number($elem.attr('min')),
       max = Number($elem.attr('max'));
-  if (isNaN(v)) v = Number($elem.attr('value'));
-  if (round) v = Math.round(v);
-  if (v < min) v = min;
-  if (v > max) v = max;
-  $elem.val(v);
-  return v;
+  if (isNaN(param)) param = Number($elem.attr('value'));
+  if (round) param = Math.round(param);
+  if (param < min) param = min;
+  if (param > max) param = max;
+  $elem.val(param);
+  return param;
 };
 
 App.prototype.setFps = function (value) {
