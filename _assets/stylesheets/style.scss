@@ -143,8 +143,48 @@ output {
 }
 
 #display {
-  canvas {
+  svg {
+    border: 1px solid #ddd;
+    border-radius: 4px;
     margin-bottom: 20px;
+  }
+  .nodes {
+    rect {
+      fill: steelblue;
+    }
+    text {
+      fill: white;
+    }
+  }
+  .data-frames {
+    rect {
+      fill: #00c000;
+      stroke: white;
+    }
+    text {
+      fill: white;
+    }
+    .error rect {
+      fill: #c00000;
+    }
+  }
+  .control-frames {
+    rect {
+      fill: #ccc;
+    }
+    text {
+      fill: #333;
+    }
+  }
+  .curtain {
+    rect {
+      fill: white;
+    }
+  }
+  .values {
+    text {
+      fill: #333;
+    }
   }
 }
 

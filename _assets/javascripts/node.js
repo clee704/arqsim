@@ -8,6 +8,7 @@ function Node(w, a) {
   this.rxbase = 0;
   this.rxuser = 0;  // index + 1 of the last received frame in rxbuf
   this.stats = {rx: 'ready', rxiframes: 0};
+  this.name = null;
 
   // follwing variables must be set before using this instance
   this.clock = null;
@@ -36,6 +37,10 @@ Node.prototype.setClock = function (clock) {
 Node.prototype.setLinks = function (txlink, rxlink) {
   this.txlink = txlink;
   this.rxlink = rxlink;
+};
+
+Node.prototype.setName = function (name) {
+  this.name = name;
 };
 
 Node.prototype.send = function (data) {

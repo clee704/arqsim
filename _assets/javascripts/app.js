@@ -31,7 +31,7 @@ App.prototype._bindListeners = function () {
   $('#protocol, #w, #a, #p').change(function () {
     self._updateUtilization();
   });
-  $('#framerate').change(function () { self.setFps($(this).val()); });
+  //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#speed-slider').slider({
     value: 0,
     min: -50,
@@ -76,6 +76,7 @@ App.prototype._updateUtilization = function () {
 App.prototype.start = function () {
   clearTimeout(this.loopTimer);
   clearTimeout(this.updateTimer);
+  this._updateResultsTable();
 
   this._createObjects();
   this.dataseq = 1;
@@ -115,6 +116,8 @@ App.prototype._createObjects = function() {
     this.sender = new SrNode(params.w, params.a);
     this.receiver = new SrNode(params.w, params.a);
   }
+  this.sender.setName('Sender');
+  this.receiver.setName('Receiver');
   this.system = new System(params.a, params.p, this.sender, this.receiver);
   this.system.setClock(this.clock);
 };
@@ -147,9 +150,9 @@ App.prototype._getParameter = function ($elem, round) {
 };
 
 App.prototype.setFps = function (value) {
-  if ($('#framerate option[value=' + value + ']').length == 0) return;
+  //if ($('#framerate option[value=' + value + ']').length == 0) return;
   this.painter.setFps(value);
-  $('#framerate').val(value);
+  //$('#framerate').val(value);
 };
 
 App.prototype.setSimulationSpeed = function (value) {
@@ -215,6 +218,7 @@ App.prototype._newResultRow = function () {
 };
 
 App.prototype._updateResultsTable = function () {
+  if (!this.started) return;
   var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR',
       p = this.system.link1.currentFrameErrorRate(),
       u = this.receiver.currentUtilization();
