@@ -1,8 +1,8 @@
 
 function Painter(system, receivedData) {
+  this.fps = 60;
   this.system = system;
   this.receivedData = receivedData;
-  this.fps = 60;
   this.width = 640;
   this.height = 640;
   this.margin = 50;
