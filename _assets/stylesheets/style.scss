@@ -147,3 +147,9 @@ output {
     margin-bottom: 20px;
   }
 }
+
+#results {
+  tr.current td {
+    background-color: #fcf8e3;
+  }
+}

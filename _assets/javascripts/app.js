@@ -86,6 +86,9 @@ App.prototype.start = function () {
   this.pause(false);
   $('#pause').show();
   $('#start').text('Start new');
+
+  var self = this;
+  setInterval(function () { self._updateResultsTable(); }, 1000);
 };
 
 App.prototype._createObjects = function() {
@@ -97,10 +100,7 @@ App.prototype._createObjects = function() {
   this.clock.addEvent({
     time: this.clock.dtMin,
     interval: 1,
-    func: function () {
-      self._operate();
-      self._updateResultsTable();
-    }
+    func: function () { self._operate(); }
   });
   if (vars.protocol == 'gbn') {
     this.sender = new GbnNode(vars.w, vars.a);
@@ -194,7 +194,7 @@ App.prototype._operate = function () {
 };
 
 App.prototype._getNewResultRow = function () {
-  var tmpl = '<tr>' +
+  var tmpl = '<tr class="current">' +
       '<td class="Protocol"></td>' +
       '<td class="w"></td>' +
       '<td class="T"></td>' +
@@ -204,11 +204,19 @@ App.prototype._getNewResultRow = function () {
       '<td class="t"></td>' +
       '</tr>';
   $('#results tbody td.empty').remove();
+  $('#results tbody tr.current').removeClass('current');
   this.resultRow = $(tmpl).prependTo($('#results tbody'));
 };
 
 App.prototype._updateResultsTable = function () {
-  var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR';
+  var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR',
+      p = this.system.link1.stats.errors / Math.max(1, this.system.link1.stats.total),
+      u = this.receiver.stats.rxiframes / Math.max(1, Math.floor(this.clock.currentTime - this.system.a));
   this.resultRow.find('.Protocol').text(protocol);
   this.resultRow.find('.w').text(this.sender.w);
+  this.resultRow.find('.T').text(this.sender.txtimeout);
+  this.resultRow.find('.a').text(this.sender.a);
+  this.resultRow.find('.P').text(p.toFixed(6));
+  this.resultRow.find('.U').text(u.toFixed(4));
+  this.resultRow.find('.t').text(this.clock.currentTime.toPrecision(2));
 };
