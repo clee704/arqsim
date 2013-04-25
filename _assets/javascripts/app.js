@@ -210,8 +210,8 @@ App.prototype._newResultRow = function () {
 
 App.prototype._updateResultsTable = function () {
   var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR',
-      p = this.system.link1.stats.errors / Math.max(1, this.system.link1.stats.total),
-      u = this.receiver.stats.rxiframes / Math.max(1, Math.floor(this.clock.currentTime - this.system.a));
+      p = this.system.link1.currentFrameErrorRate(),
+      u = this.receiver.currentUtilization();
   this.resultRow.find('.Protocol').text(protocol);
   this.resultRow.find('.w').text(this.sender.w);
   this.resultRow.find('.T').text(this.sender.txtimeout);

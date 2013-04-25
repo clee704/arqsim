@@ -60,3 +60,7 @@ Link.prototype.read = function () {
   queue.splice(0, i);
   return ret;
 };
+
+Link.prototype.currentFrameErrorRate = function () {
+  return this.stats.errors / Math.max(1, this.stats.total);
+};

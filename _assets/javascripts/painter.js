@@ -223,8 +223,8 @@ Painter.prototype._drawStatistics = function () {
       h = 18,
       x = width / 2,
       y = this.margin,
-      p = system.link1.stats.errors / Math.max(1, system.link1.stats.total),
-      u = receiver.stats.rxiframes / Math.max(1, Math.floor(clock.currentTime - system.a));
+      p = this.system.link1.currentFrameErrorRate(),
+      u = receiver.currentUtilization();
   ctx.save();
   ctx.font = (h - 5) + 'px Consolas, monospace';
   ctx.textAlign = 'left';

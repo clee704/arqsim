@@ -68,6 +68,11 @@ Node.prototype.recv = function () {
   return data;
 };
 
+Node.prototype.currentUtilization = function () {
+  return this.stats.rxiframes /
+      Math.max(1, Math.floor(this.clock.currentTime - this.a));
+};
+
 Node.prototype._operate = function () {
   this._checkTimeout();
   this._recv();
