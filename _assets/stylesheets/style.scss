@@ -148,12 +148,12 @@ output {
     border-radius: 4px;
     margin-bottom: 20px;
   }
+  text {
+    fill: $text-color;
+  }
   .nodes {
     rect {
       fill: #ddd;
-    }
-    text {
-      fill: $text-color;
     }
   }
   .data-frames {
@@ -172,24 +172,10 @@ output {
     rect {
       fill: #ccc;
     }
-    text {
-      fill: $text-color;
-    }
-  }
-  .curtain {
-    rect {
-      fill: white;
-    }
   }
   .values {
-    text {
-      fill: $text-color;
+    .name {
+      fill: #999;
     }
-  }
-}
-
-#results {
-  tr.current td {
-    background-color: #fcf8e3;
   }
 }

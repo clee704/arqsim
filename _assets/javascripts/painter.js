@@ -16,6 +16,16 @@ function Painter(system, receivedData) {
     accept: '#00c000'
   };
   this.frameColors = [];
+  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR',
+  this.labels = [
+    'Protocol',
+    'W',
+    'Timeout',
+    'a',
+    'P',
+    'U',
+    'Time'
+  ];
 }
 
 Painter.prototype.init = function () {
@@ -148,20 +158,42 @@ Painter.prototype._drawSecondaryLink = function () {
 };
 
 Painter.prototype._displayValues = function () {
-  var values = this.svg.select('.values')
-        .selectAll('text')
-        .data([this.system.clock.currentTime]);
-  values.enter()
-      .append('text')
+  var self = this,
+      system = this.system,
+      sender = system.node1,
+      values = this.svg.select('.values')
+        .selectAll('g')
+        .data([
+          this.protocol,
+          sender.w,
+          sender.txtimeout,
+          sender.a,
+          system.link1.currentFrameErrorRate().toFixed(6),
+          system.node2.currentUtilization().toFixed(6),
+          system.clock.currentTime.toPrecision(3)
+        ]);
+  var valuesEnter = values.enter()
+      .append('g');
+  valuesEnter.append('text')
+      .attr('class', 'name')
       .attr('transform', function (d, i) {
-        return 'translate(450, ' + (75 + i * 40) + ')';
+        return 'translate(370, ' + (150 + i * 30) + ')';
       })
       .attr('text-anchor', 'end')
       .attr('dominant-baseline', 'central')
-      .text(function (d) { return d.toFixed(2); });
+      .text(function (d, i) { return self.labels[i]; });
+  valuesEnter.append('text')
+      .attr('class', 'value')
+      .attr('transform', function (d, i) {
+        return 'translate(380, ' + (150 + i * 30) + ')';
+      })
+      .attr('text-anchor', 'start')
+      .attr('dominant-baseline', 'central')
+      .text(function (d) { return d; });
   values.transition()
       .duration(0)
-      .text(function (d) { return d.toFixed(2); });
+      .select('.value')
+      .text(function (d) { return d; });
 };
 
 Painter.prototype._drawSenderWindow = function () {

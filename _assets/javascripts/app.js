@@ -17,8 +17,6 @@ function App() {
   // others
   this.painter = null;
   this.loopTimer = null;
-  this.resultCells = [];
-  this.updateTimer = null;
 }
 
 App.prototype.init = function () {
@@ -75,8 +73,6 @@ App.prototype._updateTheoreticalUtilization = function () {
 
 App.prototype.start = function () {
   clearTimeout(this.loopTimer);
-  clearTimeout(this.updateTimer);
-  this._updateResultsTable();
 
   this._createObjects();
   this.dataseq = 1;
@@ -89,13 +85,6 @@ App.prototype.start = function () {
   this.pause(false);
   $('#pause').show();
   $('#start').text('Start new');
-
-  var self = this;
-  this._newResultsTableRow();
-  this._updateResultsTable();
-  this.updateTimer = setInterval(function () {
-    self._updateResultsTable();
-  }, 1000);
 };
 
 App.prototype._createObjects = function() {
@@ -200,36 +189,4 @@ App.prototype._operate = function () {
   } catch (e) {
     // sender may throw an error if its buffer is full
   }
-};
-
-App.prototype._newResultsTableRow = function () {
-  var tmpl = '<tr class="current">' +
-      '<td></td>' +
-      '<td></td>' +
-      '<td></td>' +
-      '<td></td>' +
-      '<td></td>' +
-      '<td></td>' +
-      '<td></td>' +
-      '</tr>';
-  $('#results tbody td.empty').remove();
-  $('#results tbody tr.current').removeClass('current');
-  this.resultCells = $(tmpl).prependTo($('#results tbody')).find('td');
-};
-
-App.prototype._updateResultsTable = function () {
-  if (!this.started) return;
-  var sender = this.sender,
-      data = [
-        sender.constructor == GbnNode ? 'GBN' : 'SR',
-        sender.w,
-        sender.txtimeout,
-        sender.a,
-        this.system.link1.currentFrameErrorRate().toFixed(6),
-        this.receiver.currentUtilization().toFixed(4),
-        this.clock.currentTime.toPrecision(2)
-      ];
-  this.resultCells.each(function (i) {
-    this.innerHTML = data[i];
-  });
 };
