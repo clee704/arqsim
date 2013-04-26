@@ -27,7 +27,28 @@ describe('Go-Back-N nodes', function () {
       expect(receiver.recv()).toEqual([]);
     });
 
+    it('should work when txextra is used', function () {
+      sender.send(1);
+      sender.send(2);
+      sender.send(3);
+      sender.send(4);
+      sender.send(5);
+      clock.advance(12);
+      expect(receiver.recv()).toEqual([1]);
+      clock.advance(1);
+      expect(receiver.recv()).toEqual([2]);
+      clock.advance(1);
+      expect(receiver.recv()).toEqual([3]);
+      clock.advance(1);
+      expect(receiver.recv()).toEqual([4]);
+      clock.advance(8);
+      expect(sender.txlink.queue).toEqual([
+        {type: 'I', data: 5, sn: 4, time: 22}
+      ]);
+    })
+
     it('should reject data from upper layer when txbuf is full', function () {
+      sender.send('foo');
       sender.send('foo');
       sender.send('foo');
       sender.send('foo');

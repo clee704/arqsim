@@ -2,6 +2,7 @@ function Node(w, a) {
   this.w = w;  // window size
   this.a = a;  // ratio of propagation delay relative to transmission time
   this.txbuf = new CircularBuffer(w);
+  this.txextra = null;  // extra buffer
   this.txbase = 0;
   this.txnext = 0;  // sequence number of the first unsent frame
   this.txuser = 0;  // index of the first available slot in txbuf
@@ -46,15 +47,15 @@ Node.prototype.setName = function (name) {
 Node.prototype.send = function (data) {
   var w = this.w,
       i = this.txuser;
+  if (i === w && this.txextra !== null) throw new Error('buffer full');
   if (!this.txlink) {
     throw new Error('link not connected');
   }
-  if (i === w) {
-    throw new Error('buffer full');
-  } else {
-    assert(i < w);
+  if (i < w) {
     this.txbuf.set(i, data);
     this.txuser++;
+  } else {
+    this.txextra = data;
   }
 };
 
@@ -155,6 +156,12 @@ GbnNode.prototype._recvS = function (frame) {
       j = (this.txnext - txbase + s) % s;
   if (i > 0 && i <= w) {
     this.txbase = (txbase + i) % s;
+    if (this.txuser === w && this.txextra !== null) {
+      txbuf.push(this.txextra);
+      this.txextra = null;
+      txtimers.push();
+      i--;
+    }
     this.txuser -= i;
     while (i-- > 0) {
       txbuf.push();
