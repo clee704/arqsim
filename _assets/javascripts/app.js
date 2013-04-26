@@ -30,7 +30,7 @@ App.prototype._bindListeners = function () {
     self._updateTheoreticalUtilization();
   });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
-  $('#speed-slider').slider({
+  $('#simulation-speed-slider').slider({
     value: 0,
     min: -50,
     max: 250,
@@ -52,7 +52,7 @@ App.prototype._bindListeners = function () {
 
 App.prototype._updateDisplays = function () {
   this._updateTheoreticalUtilization();
-  this.setSimulationSpeed($('#speed-slider').slider('value'));
+  this.setSimulationSpeed($('#simulation-speed-slider').slider('value'));
 };
 
 App.prototype._updateTheoreticalUtilization = function () {
@@ -145,13 +145,13 @@ App.prototype.setFps = function (value) {
 };
 
 App.prototype.setSimulationSpeed = function (value) {
-  if (value < $('#speed-slider').slider('option', 'min') ||
-      value > $('#speed-slider').slider('option', 'max')) {
+  if (value < $('#simulation-speed-slider').slider('option', 'min') ||
+      value > $('#simulation-speed-slider').slider('option', 'max')) {
     return;
   }
   this.simulationSpeed = Math.pow(10, value / 50);
-  $('#speed-value').html(this.simulationSpeed.toFixed(1));
-  $('#speed-slider').slider('value', value);
+  $('#simulation-speed').html(this.simulationSpeed.toFixed(1));
+  $('#simulation-speed-slider').slider('value', value);
 };
 
 // Call this._tick() this.painter.fps times per second.

@@ -30,12 +30,14 @@
             <button accesskey='p' class='btn' id='pause' style='display:none'>Pause</button>
             <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
           </div>
-          <div class='slider'>
-            <label>Simulation speed</label>
-            <div id='speed-slider'></div>
-            <span class='help-inline'>
-              <span id='speed-value'>1.0</span>x
-            </span>
+          <div class='slider-container'>
+            <div class='slider-text'>
+              <label>Simulation speed:</label>
+              <span class='slider-value'>
+                <span id='simulation-speed'>1.0</span>x
+              </span>
+            </div>
+            <div id='simulation-speed-slider'></div>
           </div>
         </form>
       </div>
