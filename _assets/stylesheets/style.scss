@@ -62,46 +62,55 @@ output {
   }
 }
 
-.ui-slider {
-  @extend %input-properties;
-  background: white;
-  border-color: #ccc;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  position: relative;
-  + .help-block {
-    margin-top: 10px;
-  }
-  .form-inline & {
-    margin-left: 6px;
-    margin-right: 6px;
-  }
-}
-
-.ui-slider-handle {
-  width: 12px;
-  height: 34px;
-  top: -4px;
-  margin-left: -7px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 2;
-  cursor: default;
-  background-image: -webkit-linear-gradient(top, white, #e6e6e6);
-  background-image: linear-gradient(to bottom, white, #e6e6e6);
-}
-
 #controls {
-  .slider {
-    margin-top: 10px;
+  .ui-slider {
+    @extend %input-properties;
+    background: white;
+    border-color: #ccc;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    position: relative;
+    + .help-block {
+      margin-top: 10px;
+    }
+    .ui-slider-handle {
+      width: 12px;
+      height: 34px;
+      top: -4px;
+      margin-left: -7px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      position: absolute;
+      z-index: 2;
+      cursor: default;
+      background-image: -webkit-linear-gradient(top, white, #e6e6e6);
+      background-image: linear-gradient(to bottom, white, #e6e6e6);
+    }
   }
-  &.float {
+  .slider-container {
+    margin-top: 10px;
+    label {
+      display: inline;
+    }
+  }
+  .slider-text {
+    margin-bottom: 6px;
+  }
+  &.medium {
+    .slider-container {
+      margin-top: 0;
+      float: right;
+    }
+    .slider-text {
+      margin-right: 6px;
+    }
     .buttons {
       float: left;
     }
-    .slider {
-      float: right;
-      margin-top: 0;
+  }
+  &.wide {
+    .slider-text {
+      display: inline;
+      margin-bottom: 0;
     }
   }
 }
