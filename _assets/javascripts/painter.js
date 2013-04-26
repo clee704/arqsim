@@ -5,16 +5,20 @@ function Painter(system) {
   this.svg = null;
   this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR',
   this.labels = [
+    'SN min',
+    'SN max',
+    'SN next',
+    '',
     'Protocol',
     'W',
     'Timeout',
     'a',
     'P',
     'U',
-    'Time'
+    'Time',
+    '',
+    'RN min'
   ];
-  this.senderWindowLabels = ['SN min', 'SN max', 'SN next'];
-  this.receiverWindowLabels = ['RN min'];
 }
 
 Painter.prototype.init = function () {
@@ -26,10 +30,7 @@ Painter.prototype.init = function () {
   this.svg.append('g').classed('data-frames', true);
   this.svg.append('g').classed('control-frames', true);
   this.svg.append('g').classed('nodes', true);
-  var values = this.svg.append('g').classed('monitor', true);
-  values.append('g').classed('values', true);
-  values.append('g').classed('sender-window', true);
-  values.append('g').classed('receiver-window', true);
+  this.svg.append('g').classed('values', true);
   this._drawNodes();
 };
 
@@ -40,8 +41,6 @@ Painter.prototype.setFps = function (fps) {
 Painter.prototype.drawAll = function () {
   this._drawPrimaryLink();
   this._drawSecondaryLink();
-  this._drawSenderWindow();
-  this._drawReceiverWindow();
   this._displayValues();
 };
 
@@ -127,91 +126,38 @@ Painter.prototype._displayValues = function () {
   var self = this,
       system = this.system,
       sender = system.node1,
+      receiver = system.node2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
+          sender.txbase % sender.s,
+          (sender.txbase + sender.txbuf.length - 1) % sender.s,
+          sender.txnext % sender.s,
+          '',
           this.protocol,
           sender.w,
           sender.txtimeout,
           sender.a,
           system.link1.currentFrameErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
-          system.clock.currentTime.toPrecision(3)
+          system.clock.currentTime.toPrecision(3),
+          '',
+          receiver.rxbase % receiver.s
         ]);
   var valuesEnter = values.enter().append('g');
   valuesEnter.append('text')
       .classed('name', true)
       .attr('text-anchor', 'end')
       .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(370, ' + (160 + i * 30) + ')';
-      })
+      .attr('x', 370)
+      .attr('y', function (d, i) { return 70 + i * 25; })
       .text(function (d, i) { return self.labels[i]; });
   valuesEnter.append('text')
       .classed('value', true)
       .attr('text-anchor', 'start')
       .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(380, ' + (160 + i * 30) + ')';
-      })
+      .attr('x', 380)
+      .attr('y', function (d, i) { return 70 + i * 25; });
   values.select('.value')
-      .text(function (d) { return d; });
-};
-
-Painter.prototype._drawSenderWindow = function () {
-  var self = this,
-      sender = this.system.node1,
-      senderWindow = this.svg.select('.sender-window')
-        .selectAll('g')
-        .data([
-          sender.txbase % sender.s,
-          (sender.txbase + sender.txbuf.length - 1) % sender.s,
-          sender.txnext % sender.s
-        ]);
-  var senderWindowEnter = senderWindow.enter().append('g');
-  senderWindowEnter.append('text')
-      .classed('name', true)
-      .attr('text-anchor', 'end')
-      .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(370, ' + (40 + i * 30) + ')';
-      })
-      .text(function (d, i) { return self.senderWindowLabels[i]; });
-  senderWindowEnter.append('text')
-      .classed('value', true)
-      .attr('text-anchor', 'start')
-      .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(380, ' + (40 + i * 30) + ')';
-      });
-  senderWindow.select('.value')
-      .text(function (d) { return d; });
-};
-
-Painter.prototype._drawReceiverWindow = function () {
-  var self = this,
-      receiver = this.system.node2,
-      receiverWindow = this.svg.select('.receiver-window')
-        .selectAll('g')
-        .data([
-          receiver.rxbase % receiver.s
-        ]);
-  var receiverWindowEnter = receiverWindow.enter().append('g');
-  receiverWindowEnter.append('text')
-      .classed('name', true)
-      .attr('text-anchor', 'end')
-      .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(370, ' + (400 + i * 30) + ')';
-      })
-      .text(function (d, i) { return self.receiverWindowLabels[i]; });
-  receiverWindowEnter.append('text')
-      .classed('value', true)
-      .attr('text-anchor', 'start')
-      .attr('dominant-baseline', 'central')
-      .attr('transform', function (d, i) {
-        return 'translate(380, ' + (400 + i * 30) + ')';
-      });
-  receiverWindow.select('.value')
       .text(function (d) { return d; });
 };
