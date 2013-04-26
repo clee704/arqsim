@@ -24,6 +24,8 @@ function Painter(system) {
 Painter.prototype.init = function () {
   $('#display').empty();
   this.svg = d3.select('#display')
+      .append('div')
+      .classed('svg-container', true)
       .append('svg')
       .attr('width', 500)
       .attr('height', 500);
