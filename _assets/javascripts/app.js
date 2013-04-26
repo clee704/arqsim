@@ -70,7 +70,7 @@ App.prototype._updateTheoreticalUtilization = function () {
   } else {
     // TODO
   }
-  $('#u').text(u);
+  $('#u').text(u.toFixed(6));
 };
 
 App.prototype.start = function () {
