@@ -97,9 +97,9 @@ Painter.prototype._drawPrimaryLink = function () {
         .attr('transform', transform);
   framesEnter.append('rect')
       .attr('stroke-width', Math.max(Math.min(h / 20 - 0.25, 1), 0))
-      .attr('x', -30)
+      .attr('x', -33)
       .attr('y', -(h / 2))
-      .attr('width', 60)
+      .attr('width', 66)
       .attr('height', h);
   if (h > 3) {
     framesEnter.append('text')
@@ -129,9 +129,9 @@ Painter.prototype._drawSecondaryLink = function () {
         .append('g')
         .attr('transform', transform);
   framesEnter.append('rect')
-      .attr('x', -30)
+      .attr('x', -33)
       .attr('y', -(h / 2))
-      .attr('width', 60)
+      .attr('width', 66)
       .attr('height', h);
   if (h > 3) {
     framesEnter.append('text')
@@ -145,29 +145,6 @@ Painter.prototype._drawSecondaryLink = function () {
       .attr('transform', transform);
   frames.exit()
       .remove();
-  /*var ctx = this.ctx,
-      system = this.system,
-      w = this.nodeWidth / 3,
-      h = (this.height - (this.margin + this.nodeHeight) * 2) / system.a / 4,
-      dh = h * 4,
-      x = (this.width - this.nodeWidth * 2) / 4 + this.nodeWidth - w * 5 / 4,
-      y = this.height - this.margin - this.nodeHeight - h / 2,
-      i, e, t;
-  ctx.save();
-  ctx.font = Math.min(dh - 1, 14) + 'px Consolas, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (i = 0; i < system.link2.queue.length; ++i) {
-    e = system.link2.queue[i];
-    t = system.clock.currentTime - e.time;
-    ctx.fillStyle = e.func === 'RR' ? '#606060' : '#817339';
-    ctx.fillRect(x, y - t * dh, w, h);
-    if (h > 1) {
-      ctx.fillStyle = '#fff';
-      ctx.fillText(e.func + ' ' + e.rn, x + w / 2, y - t * dh + h / 2);
-    };
-  };
-  ctx.restore();*/
 };
 
 Painter.prototype._displayValues = function () {

@@ -150,10 +150,10 @@ output {
   }
   .nodes {
     rect {
-      fill: steelblue;
+      fill: #ddd;
     }
     text {
-      fill: white;
+      fill: $text-color;
     }
   }
   .data-frames {
@@ -173,7 +173,7 @@ output {
       fill: #ccc;
     }
     text {
-      fill: #333;
+      fill: $text-color;
     }
   }
   .curtain {
@@ -183,7 +183,7 @@ output {
   }
   .values {
     text {
-      fill: #333;
+      fill: $text-color;
     }
   }
 }
