@@ -26,11 +26,9 @@ Painter.prototype.init = function () {
       .attr('height', 500);
   this.svg.append('g').attr('class', 'data-frames');
   this.svg.append('g').attr('class', 'control-frames');
-  this.svg.append('g').attr('class', 'curtain');
   this.svg.append('g').attr('class', 'nodes');
   this.svg.append('g').attr('class', 'values');
   this._drawNodes();
-  this._drawCurtain();
 };
 
 Painter.prototype._makeFrameColors = function () {
@@ -65,41 +63,28 @@ Painter.prototype._drawNodes = function () {
         .enter()
         .append('g')
         .attr('transform', function (d, i) {
-          return 'translate(250, ' + (75 + i * 350) + ')';
+          return 'translate(150, ' + (i * 500) + ')';
         });
   nodes.append('rect')
-      .attr('x', -70)
-      .attr('y', -25)
-      .attr('width', 140)
-      .attr('height', 50)
+      .attr('x', -100)
+      .attr('y', -50)
+      .attr('width', 200)
+      .attr('height', 100)
       .attr('rx', 5)
       .attr('ry', 5);
   nodes.append('text')
+      .attr('y', function (d, i) { return 25 - 50 * i; })
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
       .text(function (d) { return d.name; });
 };
 
-Painter.prototype._drawCurtain = function () {
-  var curtain = this.svg.select('.curtain');
-  curtain.append('rect')
-      .attr('x', 180)
-      .attr('y', 0)
-      .attr('width', 140)
-      .attr('height', 75);
-  curtain.append('rect')
-      .attr('x', 180)
-      .attr('y', 425)
-      .attr('width', 140)
-      .attr('height', 75);
-};
-
 Painter.prototype._drawPrimaryLink = function () {
   var system = this.system,
       currentTime = system.clock.currentTime,
-      h = 300 / system.a,
+      h = 400 / system.a,
       transform = function (d, i) {
-        return 'translate(220, ' + (100 + (currentTime - d.time) * h + h / 2) + ')';
+        return 'translate(105, ' + (50 + (currentTime - d.time) * h + h / 2) + ')';
       };
   var frames = this.svg.select('.data-frames')
         .selectAll('g')
@@ -112,9 +97,9 @@ Painter.prototype._drawPrimaryLink = function () {
         .attr('transform', transform);
   framesEnter.append('rect')
       .attr('stroke-width', Math.max(Math.min(h / 20 - 0.25, 1), 0))
-      .attr('x', -20)
+      .attr('x', -30)
       .attr('y', -(h / 2))
-      .attr('width', 40)
+      .attr('width', 60)
       .attr('height', h);
   if (h > 3) {
     framesEnter.append('text')
@@ -133,9 +118,9 @@ Painter.prototype._drawPrimaryLink = function () {
 Painter.prototype._drawSecondaryLink = function () {
   var system = this.system,
       currentTime = system.clock.currentTime,
-      h = 300 / system.a / 3,
+      h = 400 / system.a / 3,
       transform = function (d, i) {
-        return 'translate(280, ' + (400 - (currentTime - d.time) * h * 3) + ')';
+        return 'translate(195, ' + (450 - (currentTime - d.time) * h * 3) + ')';
       };
   var frames = this.svg.select('.control-frames')
         .selectAll('g')
@@ -144,9 +129,9 @@ Painter.prototype._drawSecondaryLink = function () {
         .append('g')
         .attr('transform', transform);
   framesEnter.append('rect')
-      .attr('x', -20)
+      .attr('x', -30)
       .attr('y', -(h / 2))
-      .attr('width', 40)
+      .attr('width', 60)
       .attr('height', h);
   if (h > 3) {
     framesEnter.append('text')
