@@ -78,7 +78,7 @@ App.prototype.start = function () {
   this.dataseq = 1;
   this.receivedData = [];
 
-  this.painter = new Painter(this.system, this.receivedData);
+  this.painter = new Painter(this.system);
   this.painter.init();
 
   this.started = true;
