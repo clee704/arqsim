@@ -29,7 +29,7 @@ App.prototype.init = function () {
 App.prototype._bindListeners = function () {
   var self = this;
   $('#protocol, #w, #a, #p').change(function () {
-    self._updateUtilization();
+    self._updateTheoreticalUtilization();
   });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#speed-slider').slider({
@@ -53,11 +53,11 @@ App.prototype._bindListeners = function () {
 };
 
 App.prototype._updateDisplays = function () {
-  this._updateUtilization();
+  this._updateTheoreticalUtilization();
   this.setSimulationSpeed($('#speed-slider').slider('value'));
 };
 
-App.prototype._updateUtilization = function () {
+App.prototype._updateTheoreticalUtilization = function () {
   var params = this.getParameters(),
       u = 0;
   if (params.protocol == 'gbn') {
