@@ -153,6 +153,9 @@ output {
     border-radius: 4px;
     margin-bottom: 20px;
   }
+  svg {
+    vertical-align: middle;  // Removes bottom margin
+  }
   text {
     fill: $text-color;
   }
