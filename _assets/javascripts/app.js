@@ -17,7 +17,7 @@ function App() {
   // others
   this.painter = null;
   this.loopTimer = null;
-  this.resultRow = null;
+  this.resultCells = [];
   this.updateTimer = null;
 }
 
@@ -91,7 +91,7 @@ App.prototype.start = function () {
   $('#start').text('Start new');
 
   var self = this;
-  this._newResultRow();
+  this._newResultsTableRow();
   this._updateResultsTable();
   this.updateTimer = setInterval(function () {
     self._updateResultsTable();
@@ -202,31 +202,34 @@ App.prototype._operate = function () {
   }
 };
 
-App.prototype._newResultRow = function () {
+App.prototype._newResultsTableRow = function () {
   var tmpl = '<tr class="current">' +
-      '<td class="Protocol"></td>' +
-      '<td class="w"></td>' +
-      '<td class="T"></td>' +
-      '<td class="a"></td>' +
-      '<td class="P"></td>' +
-      '<td class="U"></td>' +
-      '<td class="t"></td>' +
+      '<td></td>' +
+      '<td></td>' +
+      '<td></td>' +
+      '<td></td>' +
+      '<td></td>' +
+      '<td></td>' +
+      '<td></td>' +
       '</tr>';
   $('#results tbody td.empty').remove();
   $('#results tbody tr.current').removeClass('current');
-  this.resultRow = $(tmpl).prependTo($('#results tbody'));
+  this.resultCells = $(tmpl).prependTo($('#results tbody')).find('td');
 };
 
 App.prototype._updateResultsTable = function () {
   if (!this.started) return;
-  var protocol = this.sender.constructor == GbnNode ? 'GBN' : 'SR',
-      p = this.system.link1.currentFrameErrorRate(),
-      u = this.receiver.currentUtilization();
-  this.resultRow.find('.Protocol').text(protocol);
-  this.resultRow.find('.w').text(this.sender.w);
-  this.resultRow.find('.T').text(this.sender.txtimeout);
-  this.resultRow.find('.a').text(this.sender.a);
-  this.resultRow.find('.P').text(p.toFixed(6));
-  this.resultRow.find('.U').text(u.toFixed(4));
-  this.resultRow.find('.t').text(this.clock.currentTime.toPrecision(2));
+  var sender = this.sender,
+      data = [
+        sender.constructor == GbnNode ? 'GBN' : 'SR',
+        sender.w,
+        sender.txtimeout,
+        sender.a,
+        this.system.link1.currentFrameErrorRate().toFixed(6),
+        this.receiver.currentUtilization().toFixed(4),
+        this.clock.currentTime.toPrecision(2)
+      ];
+  this.resultCells.each(function (i) {
+    this.innerHTML = data[i];
+  });
 };
