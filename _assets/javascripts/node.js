@@ -47,9 +47,9 @@ Node.prototype.setName = function (name) {
 Node.prototype.send = function (data) {
   var w = this.w,
       i = this.txuser;
-  if (i === w && this.txextra !== null) throw new Error('buffer full');
+  if (i === w && this.txextra !== null) throw 'buffer full';
   if (!this.txlink) {
-    throw new Error('link not connected');
+    throw 'link not connected';
   }
   if (i < w) {
     this.txbuf.set(i, data);
