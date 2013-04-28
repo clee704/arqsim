@@ -41,7 +41,7 @@
         <h2 data-toggle='collapse' data-target='#parameters'>Parameters</h2>
         <div id='parameters' class='collapse in'>
           <div class='well'>
-            <form data-squery='min-width:400px=help-column'>
+            <form data-squery='min-width:480px=help-column'>
               <div class='param clearfix'>
                 <label for='protocol'>Protocol:</label>
                 <select id='protocol' class='input-medium'>
@@ -65,6 +65,16 @@
                 </div>
                 <div class='help-block'>
                   Ratio of propagation time to transmission time
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='timeout'>timeout =</label>
+                  <input id='timeout' max='10000' min='1' type='number' value='22' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Sender resends the first unacknowledged frame if it doesn't
+                  receive ACK in a given timeout period.
                 </div>
               </div>
               <div class='param clearfix'>

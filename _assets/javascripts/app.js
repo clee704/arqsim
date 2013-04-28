@@ -26,6 +26,9 @@ App.prototype.init = function () {
 
 App.prototype._bindListeners = function () {
   var self = this;
+  $('#a').change(function () {
+    $('#timeout').val($(this).val() * 2 + 2);
+  });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#simulation-speed-slider').slider({
     value: 0,
@@ -79,11 +82,11 @@ App.prototype._createObjects = function() {
     func: function () { self._operate(); }
   });
   if (params.protocol == 'gbn') {
-    this.sender = new GbnNode(params.w, params.a);
-    this.receiver = new GbnNode(params.w, params.a);
+    this.sender = new GbnNode(params.w, params.a, params.timeout);
+    this.receiver = new GbnNode(params.w, params.a, params.timeout);
   } else {
-    this.sender = new SrNode(params.w, params.a);
-    this.receiver = new SrNode(params.w, params.a);
+    this.sender = new SrNode(params.w, params.a, params.timeout);
+    this.receiver = new SrNode(params.w, params.a, params.timeout);
   }
   this.sender.setName('Sender');
   this.receiver.setName('Receiver');
@@ -102,6 +105,7 @@ App.prototype.getParameters = function () {
     protocol: $('#protocol option:selected').val(),
     w: this._getParameter($('#w'), true),
     a: this._getParameter($('#a'), true),
+    timeout: this._getParameter($('#timeout'), true),
     p: this._getParameter($('#p'))
   };
 };

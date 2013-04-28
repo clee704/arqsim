@@ -112,12 +112,12 @@ Node.prototype._send = function () {
 };
 
 
-function GbnNode(w, a) {
+function GbnNode(w, a, timeout) {
   Node.call(this, w, a);
   // # of sequence numbers
   this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2));
   this.txtimers = new CircularBuffer(w);
-  this.txtimeout = a * 2 + 2;
+  this.txtimeout = timeout;
   this.rxbuf = new CircularBuffer(1);  // dummy
   this.rxrejd = false;  // needed to send REJ only once per go-back
 }
