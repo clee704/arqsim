@@ -27,7 +27,7 @@ App.prototype.init = function () {
 App.prototype._bindListeners = function () {
   var self = this;
   $('#w, #a').change(function () {
-    $('#timeout').val($('#a').val() * 2 + $('#w').val() + 1);
+    $('#timeout').val(Number($('#a').val()) * 2 + Number($('#w').val()) + 1);
   });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#simulation-speed-slider').slider({
