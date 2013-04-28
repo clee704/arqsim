@@ -1,6 +1,7 @@
-function Link(a, p) {
-  this.a = a;  // ratio of propagation delay relative to transmission time
-  this.p = p;  // frame error rate for txqueue
+function Link(params) {
+  if (params === undefined) params = {};
+  this.a = params.a;  // ratio of propagation delay relative to transmission time
+  this.p = params.p;  // frame error rate for txqueue
   this.queue = [];
   this.stats = {errors: 0, total: 0};
 }

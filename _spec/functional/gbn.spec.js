@@ -3,18 +3,16 @@ describe('Go-Back-N nodes', function () {
   describe('with parameters w = 3, a = 10, p = 0', function () {
 
     var clock,
-        w = 4,
-        a = 10,
-        p = 0,
+        params = {w: 4, a: 10, timeout: 22, p: 0},
         sender,
         receiver,
         system;
 
     beforeEach(function () {
       clock = new Clock(-1, 10);
-      sender = new GbnNode(w, a);
-      receiver = new GbnNode(w, a);
-      system = new System(a, p, sender, receiver);
+      sender = new GbnNode(params);
+      receiver = new GbnNode(params);
+      system = new System(params, sender, receiver);
       system.setClock(clock);
     });
 

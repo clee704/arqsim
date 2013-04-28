@@ -1,7 +1,8 @@
-function Node(w, a) {
-  this.w = w;  // window size
-  this.a = a;  // ratio of propagation delay relative to transmission time
-  this.txbuf = new CircularBuffer(w);
+function Node(params) {
+  if (params === undefined) params = {};
+  this.w = params.w;  // window size
+  this.a = params.a;  // ratio of propagation delay relative to transmission time
+  this.txbuf = new CircularBuffer(params.w);
   this.txextra = null;  // extra buffer
   this.txbase = 0;
   this.txnext = 0;  // sequence number of the first unsent frame
@@ -112,12 +113,12 @@ Node.prototype._send = function () {
 };
 
 
-function GbnNode(w, a, timeout) {
-  Node.call(this, w, a);
+function GbnNode(params) {
+  Node.call(this, params);
   // # of sequence numbers
-  this.s = 1 << Math.ceil(Math.log(w + 1) / Math.log(2));
-  this.txtimers = new CircularBuffer(w);
-  this.txtimeout = timeout;
+  this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
+  this.txtimers = new CircularBuffer(params.w);
+  this.txtimeout = params.timeout;
   this.rxbuf = new CircularBuffer(1);  // dummy
   this.rxrejd = false;  // needed to send REJ only once per go-back
 }

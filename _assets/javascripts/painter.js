@@ -1,4 +1,3 @@
-
 function Painter(system) {
   this.fps = 60;
   this.system = system;
@@ -72,7 +71,7 @@ Painter.prototype._drawNodes = function () {
 Painter.prototype._drawPrimaryLink = function () {
   var system = this.system,
       currentTime = system.clock.currentTime,
-      h = 400 / system.a;
+      h = 400 / system.params.a;
   var frames = this.svg.select('.data-frames')
         .selectAll('g')
         .data(system.link1.queue, function (d) { return d.time; });
@@ -101,7 +100,7 @@ Painter.prototype._drawPrimaryLink = function () {
 Painter.prototype._drawSecondaryLink = function () {
   var system = this.system,
       currentTime = system.clock.currentTime,
-      h = 400 / system.a / 3;
+      h = 400 / system.params.a / 3;
   var frames = this.svg.select('.control-frames')
         .selectAll('g')
         .data(system.link2.queue, function (d) { return d.time; });

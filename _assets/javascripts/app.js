@@ -82,15 +82,15 @@ App.prototype._createObjects = function() {
     func: function () { self._operate(); }
   });
   if (params.protocol == 'gbn') {
-    this.sender = new GbnNode(params.w, params.a, params.timeout);
-    this.receiver = new GbnNode(params.w, params.a, params.timeout);
+    this.sender = new GbnNode(params);
+    this.receiver = new GbnNode(params);
   } else {
-    this.sender = new SrNode(params.w, params.a, params.timeout);
-    this.receiver = new SrNode(params.w, params.a, params.timeout);
+    this.sender = new SrNode(params);
+    this.receiver = new SrNode(params);
   }
   this.sender.setName('Sender');
   this.receiver.setName('Receiver');
-  this.system = new System(params.a, params.p, this.sender, this.receiver);
+  this.system = new System(params, this.sender, this.receiver);
   this.system.setClock(this.clock);
 };
 
