@@ -101,11 +101,26 @@
         </div>
       </div>
     </div>
-    <h2 data-toggle='collapse' data-target='#backgrounds'>Background</h2>
+    <h2 data-toggle='collapse' data-target='#backgrounds'>Note</h2>
     <div id='backgrounds' class='collapse in'>
       <p>
-        See <a href='http://www.ee.hacettepe.edu.tr/~aktas/arq_simulator/'>another ARQ simulator</a> for theoretical background. Note that the utilization for Go-Back-N ARQ may be lower than the theoretical value since the assumption of error-free retransmissions is not implemented in this simulation. However, ACK packets are assumed to be transmitted without errors.
+        Following assumptions and simplifications are made in this simulation:
       </p>
+      <ul>
+        <li>
+          Processing time is zero. For instance, as soon as the receiver
+          receives a data frame, it immediately sends back an ACK or NACK frame.
+          The sender also operates this way.
+        </li>
+        <li>
+          ACK and NACK frames don't have bit length. They have zero
+          transmission time and are always sent error-free.
+        </li>
+        <li>
+          If a data frame is sent with errors, the receiver cannot know if the
+          frame was a data frame or something else and therefore does nothing.
+        </li>
+      </ul>
     </div>
     <footer>
       <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
