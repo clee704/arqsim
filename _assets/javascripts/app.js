@@ -26,9 +26,6 @@ App.prototype.init = function () {
 
 App.prototype._bindListeners = function () {
   var self = this;
-  $('#protocol, #w, #a, #p').change(function () {
-    self._updateTheoreticalUtilization();
-  });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#simulation-speed-slider').slider({
     value: 0,
@@ -51,24 +48,7 @@ App.prototype._bindListeners = function () {
 };
 
 App.prototype._updateDisplays = function () {
-  this._updateTheoreticalUtilization();
   this.setSimulationSpeed($('#simulation-speed-slider').slider('value'));
-};
-
-App.prototype._updateTheoreticalUtilization = function () {
-  var params = this.getParameters(),
-      u = 0;
-  if (params.protocol == 'gbn') {
-    if (params.w >= 1 + 2 * params.a) {
-      u = (1 - params.p) / (1 + 2 * params.a * params.p);
-    } else {
-      u = params.w * (1 - params.p) /
-          ((1 + 2 * params.a) * (1 - params.p + params.w * params.p));
-    }
-  } else {
-    // TODO
-  }
-  $('#u').text(u.toFixed(6));
 };
 
 App.prototype.start = function () {
