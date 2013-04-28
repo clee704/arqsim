@@ -13,7 +13,7 @@ function Painter(system) {
     'a',
     'Timeout',
     'P',
-    'U',
+    'Utilization',
     'Time',
     '',
     'RN min'
