@@ -45,9 +45,11 @@ Painter.prototype._init = function () {
 Painter.prototype._updateDimension = function () {
   var offset = this.$svg.offset();
   this.width = this.$svg.width();
-  this.height = Math.min(Math.max($(window).height() - offset.top - 40, 400), 600);
+  this.height = Math.min(
+      Math.min(Math.max($(window).height() - offset.top - 40, 320), 480),
+      this.width);
   this.$svg.height(this.height);
-  this.nodeWidth = Math.min(Math.max(this.width / 3, 100), 300);
+  this.nodeWidth = Math.min(Math.max(this.width / 3, 100), 240);
   this.nodeHeight = this.height / 10;
   this.margin = Math.max(this.width / 5 - 40, 10);
   this.lineHeight = this.height / 16;
