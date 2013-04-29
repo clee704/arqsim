@@ -17,9 +17,11 @@ function App() {
   // others
   this.painter = null;
   this.loopTimer = null;
+
+  this._init();
 }
 
-App.prototype.init = function () {
+App.prototype._init = function () {
   this._bindListeners();
   this._updateDisplays();
 };
@@ -62,7 +64,6 @@ App.prototype.start = function () {
   this.receivedData = [];
 
   this.painter = new Painter(this.system);
-  this.painter.init();
 
   this.started = true;
   this.pause(false);

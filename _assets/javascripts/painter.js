@@ -18,9 +18,11 @@ function Painter(system) {
     '',
     'RN min'
   ];
+
+  this._init();
 }
 
-Painter.prototype.init = function () {
+Painter.prototype._init = function () {
   $('#display').empty();
   this.svg = d3.select('#display')
       .append('div')
