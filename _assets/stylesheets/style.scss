@@ -147,43 +147,68 @@ output {
   }
 }
 
-#display {
-  .svg-container {
+.svg-container {
+  margin-bottom: 20px;
+  #display & {
     border: 1px solid #ddd;
     border-radius: 4px;
-    margin-bottom: 20px;
   }
-  svg {
-    vertical-align: middle;  // Removes bottom margin
+}
+
+svg {
+  vertical-align: middle;  // Removes bottom margin
+}
+
+text {
+  fill: $text-color;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.nodes {
+  rect {
+    fill: #ddd;
+  }
+}
+
+.data-frames {
+  rect {
+    fill: #00c000;
+    stroke: white;
   }
   text {
-    fill: $text-color;
+    fill: white;
   }
-  .nodes {
-    rect {
-      fill: #ddd;
-    }
+  .error rect {
+    fill: #c00000;
   }
-  .data-frames {
-    rect {
-      fill: #00c000;
-      stroke: white;
-    }
-    text {
-      fill: white;
-    }
-    .error rect {
-      fill: #c00000;
-    }
+}
+
+.control-frames {
+  rect {
+    fill: #ccc;
   }
-  .control-frames {
-    rect {
-      fill: #ccc;
-    }
+}
+
+.values {
+  .name {
+    fill: #999;
+    text-anchor: end;
   }
-  .values {
-    .name {
-      fill: #999;
+  .value {
+    text-anchor: start;
+  }
+}
+
+#legend {
+  table {
+    td {
+      height: 30px;
+      vertical-align: middle;
+      border: 0;
+    }
+    td.symbol {
+      width: 100px;
     }
   }
 }

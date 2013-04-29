@@ -92,8 +92,6 @@ Painter.prototype._drawNodes = function () {
       .attr('rx', 5)
       .attr('ry', 5);
   nodesEnter.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central')
       .text(function (d) { return d.name; });
   nodes.attr('transform', function (d, i) {
     var dy = (i * self.height);
@@ -126,8 +124,6 @@ Painter.prototype._drawPrimaryLink = function () {
   framesEnter.append('rect');
   if (h > 3) {
     framesEnter.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central')
         .text(function (d) { return d.sn; });
   }
   frames.attr('transform', function (d, i) {
@@ -163,8 +159,6 @@ Painter.prototype._drawSecondaryLink = function () {
   framesEnter.append('rect');
   if (h > 3) {
     framesEnter.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central')
         .text(function (d) { return d.func + ' ' + d.rn; });
   }
   frames.attr('transform', function (d, i) {
@@ -210,13 +204,9 @@ Painter.prototype._displayValues = function () {
   var valuesEnter = values.enter().append('g');
   valuesEnter.append('text')
       .classed('name', true)
-      .attr('text-anchor', 'end')
-      .attr('dominant-baseline', 'central')
       .text(function (d, i) { return self.labels[i]; });
   valuesEnter.append('text')
-      .classed('value', true)
-      .attr('text-anchor', 'start')
-      .attr('dominant-baseline', 'central');
+      .classed('value', true);
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
