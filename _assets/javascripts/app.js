@@ -42,10 +42,6 @@ App.prototype._bindListeners = function () {
     self.start();
     return false;
   });
-  $('#parameters input').keydown(function (e) {
-    var RETURN = 13;
-    if (e.which === RETURN) self.start();
-  });
   $('#pause').click(function () {
     self.pause(!self.paused);
     return false;
