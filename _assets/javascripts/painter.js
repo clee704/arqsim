@@ -35,7 +35,7 @@ Painter.prototype._init = function () {
         resizeTimer = setTimeout(function () {
           self._updateDimension();
           self.drawAll();
-        }, 400);
+        }, 250);
       };
   $(window).resize(callback);
   $('[data-toggle="collapse"]').click(callback);
