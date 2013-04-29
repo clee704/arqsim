@@ -39,6 +39,7 @@ Painter.prototype._init = function () {
       };
   $(window).resize(callback);
   $('[data-toggle="collapse"]').click(callback);
+  this._drawLegend();
 };
 
 Painter.prototype._updateDimension = function () {
@@ -50,6 +51,64 @@ Painter.prototype._updateDimension = function () {
   this.nodeHeight = this.height / 10;
   this.margin = Math.max(this.width / 5 - 40, 10);
   this.lineHeight = this.height / 16;
+};
+
+Painter.prototype._drawLegend = function () {
+  var createSvg = function (selector, classes) {
+        var svg = d3.select(selector)
+          .append('svg')
+          .attr('width', 100)
+          .attr('height', 30)
+          .append('g')
+          .classed(classes[0], true)
+          .attr('transform', 'translate(50,15)');
+        if (classes[1]) {
+          svg = svg.append('g').classed(classes[1], true);
+        }
+        return svg;
+      },
+      addRect = function (svg, height) {
+        return svg.append('rect')
+          .attr('x', -50)
+          .attr('y', -(height / 2 || 15))
+          .attr('width', 100)
+          .attr('height', height || 30);
+      },
+      addText = function (svg, text) {
+        return svg.append('text').text(text);
+      },
+      createSymbol = function (options) {
+        var svg = createSvg(options.selector, options.classes);
+        addRect(svg, options.height);
+        addText(svg, options.text);
+      }
+  createSymbol({
+    selector: '#legend .node',
+    classes: ['nodes'],
+    text: 'Name'
+  });
+  createSymbol({
+    selector: '#legend .frame',
+    classes: ['data-frames'],
+    text: 'SN'
+  });
+  createSymbol({
+    selector: '#legend .frame.error',
+    classes: ['data-frames', 'error'],
+    text: 'SN'
+  });
+  createSymbol({
+    selector: '#legend .ack',
+    classes: ['control-frames'],
+    text: 'RR RN',
+    height: 20
+  });
+  createSymbol({
+    selector: '#legend .nack',
+    classes: ['control-frames'],
+    text: 'REJ RN',
+    height: 20
+  });
 };
 
 Painter.prototype.setSystem = function (system) {

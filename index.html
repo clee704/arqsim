@@ -99,28 +99,61 @@
             Press Start to start the simulation.
           </p>
         </div>
+        <h2 data-toggle='collapse' data-target='#description'>Description</h2>
+        <div id='description' class='collapse in'>
+          <p>
+            Sender tries to send data to Receiver every second. One second
+            in simulation is equal to the transmission time of a data frame,
+            which is the time from the first bit until the last bit of a frame
+            has left the transmitting node.
+          </p>
+          <p>
+            Following assumptions and simplifications are made in this simulation:
+          </p>
+          <ul>
+            <li>
+              Processing time is zero. For instance, as soon as the receiver
+              receives a data frame, it immediately sends back an ACK or NACK frame.
+              The sender also operates this way.
+            </li>
+            <li>
+              ACK and NACK frames don't have bit length. They have zero
+              transmission time and are always sent error-free.
+            </li>
+            <li>
+              If a data frame is sent with errors, the receiver cannot know if the
+              frame was a data frame or something else and therefore does nothing.
+            </li>
+          </ul>
+        </div>
+        <h2 data-toggle='collapse' data-target='#legend'>Legend</h2>
+        <div id='legend' class='collapse in'>
+          <table class='table'>
+            <tbody>
+              <tr>
+                <td class='node symbol'></td>
+                <td>Node named <i>Name</i></td>
+              </tr>
+              <tr>
+                <td class='frame symbol'></td>
+                <td>Frame with a sequence number of <i>SN</i></td>
+              </tr>
+              <tr>
+                <td class='frame error symbol'></td>
+                <td>Erroneous frame with a sequence number of <i>SN</i></td>
+              </tr>
+              <tr>
+                <td class='ack symbol'></td>
+                <td>ACK frame with a request number <i>RN</i></td>
+              </tr>
+              <tr>
+                <td class='nack symbol'></td>
+                <td>NACK frame with a request number <i>RN</i></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    <h2 data-toggle='collapse' data-target='#backgrounds'>Note</h2>
-    <div id='backgrounds' class='collapse in'>
-      <p>
-        Following assumptions and simplifications are made in this simulation:
-      </p>
-      <ul>
-        <li>
-          Processing time is zero. For instance, as soon as the receiver
-          receives a data frame, it immediately sends back an ACK or NACK frame.
-          The sender also operates this way.
-        </li>
-        <li>
-          ACK and NACK frames don't have bit length. They have zero
-          transmission time and are always sent error-free.
-        </li>
-        <li>
-          If a data frame is sent with errors, the receiver cannot know if the
-          frame was a data frame or something else and therefore does nothing.
-        </li>
-      </ul>
     </div>
     <footer>
       <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
