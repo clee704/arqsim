@@ -1,8 +1,6 @@
-function Painter(system) {
+function Painter() {
   this.fps = 60;
-  this.system = system;
   this.svg = null;
-  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR',
   this.labels = [
     'SN min',
     'SN max',
@@ -23,6 +21,14 @@ function Painter(system) {
 }
 
 Painter.prototype._init = function () {
+  $(window).resize(function () {
+    console.log($('#display').width());
+  })
+};
+
+Painter.prototype.setSystem = function (system) {
+  this.system = system;
+  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
   $('#display').empty();
   this.svg = d3.select('#display')
       .append('div')

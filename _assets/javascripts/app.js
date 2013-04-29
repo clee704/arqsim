@@ -15,7 +15,7 @@ function App() {
   this.simulationSpeed = null;
 
   // others
-  this.painter = null;
+  this.painter = new Painter();
   this.loopTimer = null;
 
   this._init();
@@ -63,7 +63,7 @@ App.prototype.start = function () {
   this.dataseq = 1;
   this.receivedData = [];
 
-  this.painter = new Painter(this.system);
+  this.painter.setSystem(this.system);
 
   this.started = true;
   this.pause(false);
