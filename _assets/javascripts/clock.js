@@ -1,7 +1,7 @@
 function Clock(currentTime, prec) {
   prec = Math.floor(prec);
   if (prec < 10) {
-    throw new RangeError('prec must >= 10');
+    throw 'prec must >= 10';
   }
   this.dtMin = 1 / Math.pow(2, prec);
   this.currentTime = Math.floor(currentTime / this.dtMin) * this.dtMin;
@@ -23,7 +23,7 @@ Clock.prototype.advance = function (dtRaw) {
       id,
       interval;
   if (currentTime >= this.timeMax - dt) {
-    throw new Error('maximum simulation time reached');
+    throw 'maximum simulation time reached';
   }
   while ((ev = events.peek()) && (time = ev.time) <= endTime) {
     ev = events.pop();
@@ -55,7 +55,7 @@ Clock.prototype.addEvent = function (args) {
       args = args.args,
       id;
   if (time < this.currentTime) {
-    throw new Error('cannot add an event in the past');
+    throw 'cannot add an event in the past';
   }
   id = this.nextId++;
   this.events.push({

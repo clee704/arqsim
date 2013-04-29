@@ -1,6 +1,6 @@
 function CircularBuffer(length, fillValue) {
-  this.base = 0;
   this.length = length;
+  this.base = 0;
   this.buffer = new Array(length);
   while (length--) {
     this.buffer[length] = fillValue;

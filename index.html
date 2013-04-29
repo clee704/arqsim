@@ -16,108 +16,155 @@
   <![endif]-->
 </head>
 <body>
-  <div class='container'>
-    <header>
-      <h1>ARQ Simulation</h1>
-      <p>
-        <i>by <a href='http://clee.kr/'>Choongmin Lee</a> on <time datetime='2011-05-13'>May 13, 2011</time></i>
-      </p>
-    </header>
-    <h2>Background</h2>
-    <p>
-      See <a href='http://www.ee.hacettepe.edu.tr/~aktas/arq_simulator/'>another ARQ simulator</a> for theoretical background. Note that the utilization for Go-Back-N ARQ may be lower than the theoretical value since the assumption of error-free retransmissions is not implemented in this simulation. However, ACK packets are assumed to be transmitted without errors.
-    </p>
-    <div class='well'>
-      <form class='form-horizontal'>
-        <div class='control-group'>
-          <label class='control-label' for='gbn'>Protocol</label>
-          <div class='controls'>
-            <label class='radio' for='gbn'>
-              <input checked id='gbn' name='protocol' type='radio' value='gbn'>
-              Go-Back-N
-            </label>
-            <label class='radio' for='sr'>
-              <input disabled id='sr' name='protocol' type='radio' value='sr'>
-              Selective Reject
-            </label>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='w' title='window size'>
-            <var>W</var> =
-          </label>
-          <div class='controls'>
-            <input id='w' max='1023' min='1' type='number' value='31'>
-            <span class='help-block'>Window size</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='a'>
-            <var>t</var><sub>prop</sub> / <var>t</var><sub>trans</sub> =
-          </label>
-          <div class='controls'>
-            <input id='a' max='1000' min='1' type='number' value='15'>
-            <span class='help-block'>Ratio of propagation time to transmission time</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='p'>
-            <var>P</var> =
-          </label>
-          <div class='controls'>
-            <input id='p' max='1' min='0' step='any' type='number' value='0.05'>
-            <span class='help-block'>
-              Frame error rate;
-              probability that a single frame is transmitted with errors
-            </span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label'>
-            <var>U</var> =
-          </label>
-          <div class='controls'>
-            <output id='u'>0</output>
-            <span class='help-block'>Theoretical utilization</span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label' for='framerate'>Animation rate</label>
-          <div class='controls'>
-            <select id='framerate'>
-              <option value='15'>15</option>
-              <option value='30'>30</option>
-              <option selected value='60'>60</option>
-            </select>
-            FPS
-          </div>
-        </div>
-        <div class='control-group'>
-          <label class='control-label'>Simulation speed</label>
-          <div class='controls'>
-            <div id='speed-slider'></div>
-            <span class='help-block'>
-              <span id='speed-value'></span>
-              simulation time unit per second
-            </span>
-          </div>
-        </div>
-        <div class='control-group'>
-          <div class='controls'>
+  <div class='container-fluid'>
+    <div class='row-fluid'>
+      <div class='span12'>
+        <form id='controls' class='clearfix' data-squery='min-width:440px=medium min-width:620px=wide'>
+          <div class='buttons'>
+            <button accesskey='p' class='btn' id='pause' style='display:none'>Pause</button>
             <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
-            <button accesskey='p' class='btn' id='pause'>Pause</button>
+          </div>
+          <div class='slider-container'>
+            <div class='slider-text'>
+              <label>Simulation speed:</label>
+              <span class='slider-value'>
+                <span id='simulation-speed'>1.0</span>x
+              </span>
+            </div>
+            <div id='simulation-speed-slider'></div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class='row-fluid'>
+      <div class='span4'>
+        <h2 data-toggle='collapse' data-target='#parameters'>Parameters</h2>
+        <div id='parameters' class='collapse in'>
+          <div class='well'>
+            <form data-squery='min-width:480px=help-column'>
+              <div class='param clearfix'>
+                <label for='protocol'>Protocol:</label>
+                <select id='protocol' class='input-medium'>
+                  <option value='gbn'>Go-Back-N</option>
+                  <option value='sr' disabled>Selective Reject</option>
+                </select>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='w'><var>W</var> =</label>
+                  <input id='w' max='1023' min='1' type='number' value='7' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Window size
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='a'><var>a</var> =</label>
+                  <input id='a' max='1000' min='1' type='number' value='3' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Ratio of propagation time to transmission time
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label for='timeout'>timeout =</label>
+                  <input id='timeout' max='10000' min='1' type='number' value='14' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Sender resends the first unacknowledged frame if it doesn't
+                  receive ACK in a given timeout period.
+                </div>
+              </div>
+              <div class='param clearfix'>
+                <div class='label-and-input'>
+                  <label class='control-label' for='p'><var>P</var> =</label>
+                  <input id='p' max='1' min='0' step='any' type='number' value='0.05' class='input-small'>
+                </div>
+                <div class='help-block'>
+                  Frame error rate;
+                  probability that a single frame is transmitted with errors
+                  or lost and cannot be recovered
+                </div>
+              </div>
+            </form>
           </div>
         </div>
-      </form>
+      </div>
+      <div class='span8'>
+        <h2 data-toggle='collapse' data-target='#display'>Animation</h2>
+        <div id='display' class='collapse in'>
+          <p>
+            Press Start to start the simulation.
+          </p>
+        </div>
+        <h2 data-toggle='collapse' data-target='#description'>Description</h2>
+        <div id='description' class='collapse in'>
+          <p>
+            Sender tries to send data to Receiver every second. One second
+            in simulation is equal to the transmission time of a data frame,
+            which is the time from the first bit until the last bit of a frame
+            has left the transmitting node.
+          </p>
+          <p>
+            Following assumptions and simplifications are made in this simulation:
+          </p>
+          <ul>
+            <li>
+              Processing time is zero. For instance, as soon as the receiver
+              receives a data frame, it immediately sends back an ACK or NACK frame.
+              The sender also operates this way.
+            </li>
+            <li>
+              ACK and NACK frames don't have bit length. They have zero
+              transmission time and are always sent error-free.
+            </li>
+            <li>
+              If a data frame is sent with errors, the receiver cannot know if the
+              frame was a data frame or something else and therefore does nothing.
+            </li>
+          </ul>
+        </div>
+        <h2 data-toggle='collapse' data-target='#legend'>Legend</h2>
+        <div id='legend' class='collapse in'>
+          <table class='table'>
+            <tbody>
+              <tr>
+                <td class='node symbol'></td>
+                <td>Node named <i>Name</i></td>
+              </tr>
+              <tr>
+                <td class='frame symbol'></td>
+                <td>Frame with a sequence number of <i>SN</i></td>
+              </tr>
+              <tr>
+                <td class='frame error symbol'></td>
+                <td>Erroneous frame with a sequence number of <i>SN</i></td>
+              </tr>
+              <tr>
+                <td class='ack symbol'></td>
+                <td>ACK frame with a request number <i>RN</i></td>
+              </tr>
+              <tr>
+                <td class='nack symbol'></td>
+                <td>NACK frame with a request number <i>RN</i></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div id='view'></div>
     <footer>
       <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
     </footer>
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>
   <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js'></script>
+  <script src='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js'></script>
+  <script src='http://d3js.org/d3.v3.min.js'></script>
   {% javascript_asset_tag script %}
+    - /_assets/library/responsive-containers.min.js
     - /_assets/javascripts/util.js
     - /_assets/javascripts/heap.js
     - /_assets/javascripts/circularbuffer.js

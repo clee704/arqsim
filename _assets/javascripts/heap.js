@@ -1,24 +1,24 @@
-// Implementation copied from "heapq", arr Python standard library module
+// Implementation copied from "heapq", a Python standard library module
 
 function Heap(key) {
   // pop() returns elem such that key(elem) is lowest
-  this.arr = [];
+  this.array = [];
   this.key = key;
 }
 
 Heap.prototype.push = function (elem) {
-  var arr = this.arr;
-  arr.push(elem);
-  this._siftUp(0, arr.length - 1);
+  var array = this.array;
+  array.push(elem);
+  this._siftUp(0, array.length - 1);
 };
 
 Heap.prototype.pop = function () {
-  var arr = this.arr,
-      lastelem = arr.pop(),
+  var array = this.array,
+      lastelem = array.pop(),
       elem;
-  if (arr.length) {
-    elem = arr[0];
-    arr[0] = lastelem
+  if (array.length) {
+    elem = array[0];
+    array[0] = lastelem
     this._siftDown(0);
   } else {
     elem = lastelem;
@@ -27,56 +27,56 @@ Heap.prototype.pop = function () {
 };
 
 Heap.prototype.peek = function () {
-  return this.arr[0];
+  return this.array[0];
 };
 
 Heap.prototype.length = function () {
-  return this.arr.length;
+  return this.array.length;
 };
 
 Heap.prototype._siftUp = function (start, i) {
-  var arr = this.arr,
+  var array = this.array,
       key = this.key,
-      elem = arr[i],
+      elem = array[i],
       i_p,
       parent;
   while (start < i) {
     i_p = (i - 1) >> 1;
-    parent = arr[i_p];
+    parent = array[i_p];
     if (key(elem) < key(parent)) {
-      arr[i] = parent;
+      array[i] = parent;
       i = i_p;
     } else {
       break;
     }
   }
-  arr[i] = elem;
+  array[i] = elem;
 };
 
 Heap.prototype._siftDown = function (i) {
-  var arr = this.arr,
+  var array = this.array,
       key = this.key,
-      elem = arr[i],
+      elem = array[i],
       start = i,
-      end = arr.length,
+      end = array.length,
       i_c = (i << 1) + 1,
       i_rc,
       child,
       rchild;
   while (i_c < end) {
     i_rc = i_c + 1;
-    child = arr[i_c];
+    child = array[i_c];
     if (i_rc < end) {
-      rchild = arr[i_rc];
+      rchild = array[i_rc];
       if (key(rchild) < key(child)) {
         i_c = i_rc;
         child = rchild;
       }
     }
-    arr[i] = child;
+    array[i] = child;
     i = i_c;
     i_c = (i << 1) + 1;
   }
-  arr[i] = elem;
+  array[i] = elem;
   this._siftUp(start, i);
 };

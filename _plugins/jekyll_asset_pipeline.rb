@@ -21,6 +21,7 @@ module JekyllAssetPipeline
     end
 
     def compress
+      return @content if ENV['DEBUG']
       return YUI::CssCompressor.new.compress(@content)
     end
   end
@@ -33,6 +34,7 @@ module JekyllAssetPipeline
     end
 
     def compress
+      return @content if ENV['DEBUG']
       return YUI::JavaScriptCompressor.new(munge: true).compress(@content)
     end
   end

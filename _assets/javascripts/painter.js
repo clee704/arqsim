@@ -1,252 +1,282 @@
-
-function Painter(system, receivedData) {
-  this.system = system;
-  this.receivedData = receivedData;
+function Painter() {
   this.fps = 60;
-  this.width = 640;
-  this.height = 640;
-  this.margin = 50;
-  this.nodeWidth = 240;
-  this.nodeHeight = 50;
-  this.ctx = null;
-  this.statusColors = {
-    ready: 'transparent',
-    error: 'transparent',
-    discard: '#c00000',
-    accept: '#00c000'
-  };
-  this.frameColors = [];
+  this.svg = null;
+  this.$svg = $();
+  this.width = null;
+  this.height = null;
+  this.nodeWidth = null;
+  this.nodeHeight = null;
+  this.margin = null;
+  this.lineHeight = null;
+  this.labels = [
+    'SN min',
+    'SN max',
+    'SN next',
+    '',
+    'Protocol',
+    'W',
+    'a',
+    'Timeout',
+    'P',
+    'Utilization',
+    'Time',
+    '',
+    'RN min'
+  ];
+
+  this._init();
 }
 
-Painter.prototype.init = function () {
-  var canvas = document.createElement('canvas');
-  $('.noscript').remove();
-  canvas.width = this.width;
-  canvas.height = this.height;
-  this.ctx = canvas.getContext('2d');
-  this.drawBackground();
-  $('#view').empty();
-  $('#view').append(canvas);
-  this._makeFrameColors();
+Painter.prototype._init = function () {
+  var self = this,
+      resizeTimer,
+      callback = function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          self._updateDimension();
+          self.drawAll();
+        }, 250);
+      };
+  $(window).resize(callback);
+  $('[data-toggle="collapse"]').click(callback);
+  this._drawLegend();
 };
 
-Painter.prototype._makeFrameColors = function () {
-  var i,
-      r,
-      g;
-  for (i = 0; i <= 128; ++i) {
-    r = i.toString(16);
-    g = (128 - i).toString(16);
-    if (r.length === 1) r = '0' + r;
-    if (g.length === 1) g = '0' + g;
-    this.frameColors[i] = '#' + r + g + '00';
-  }
+Painter.prototype._updateDimension = function () {
+  var offset = this.$svg.offset();
+  this.width = this.$svg.width();
+  this.height = Math.min(
+      Math.min(Math.max($(window).height() - offset.top - 40, 320), 480),
+      this.width);
+  this.$svg.height(this.height);
+  this.nodeWidth = Math.min(Math.max(this.width / 3, 100), 240);
+  this.nodeHeight = this.height / 10;
+  this.margin = Math.max(this.width / 5 - 40, 10);
+  this.lineHeight = this.height / 16;
+};
+
+Painter.prototype._drawLegend = function () {
+  var createSvg = function (selector, classes) {
+        var svg = d3.select(selector)
+          .append('svg')
+          .attr('width', 100)
+          .attr('height', 30)
+          .append('g')
+          .classed(classes[0], true)
+          .attr('transform', 'translate(50,15)');
+        if (classes[1]) {
+          svg = svg.append('g').classed(classes[1], true);
+        }
+        return svg;
+      },
+      addRect = function (svg, height) {
+        return svg.append('rect')
+          .attr('x', -50)
+          .attr('y', -(height / 2 || 15))
+          .attr('width', 100)
+          .attr('height', height || 30);
+      },
+      addText = function (svg, text) {
+        return svg.append('text').text(text);
+      },
+      createSymbol = function (options) {
+        var svg = createSvg(options.selector, options.classes);
+        addRect(svg, options.height);
+        addText(svg, options.text);
+      }
+  createSymbol({
+    selector: '#legend .node',
+    classes: ['nodes'],
+    text: 'Name'
+  });
+  createSymbol({
+    selector: '#legend .frame',
+    classes: ['data-frames'],
+    text: 'SN'
+  });
+  createSymbol({
+    selector: '#legend .frame.error',
+    classes: ['data-frames', 'error'],
+    text: 'SN'
+  });
+  createSymbol({
+    selector: '#legend .ack',
+    classes: ['control-frames'],
+    text: 'RR RN',
+    height: 20
+  });
+  createSymbol({
+    selector: '#legend .nack',
+    classes: ['control-frames'],
+    text: 'REJ RN',
+    height: 20
+  });
+};
+
+Painter.prototype.setSystem = function (system) {
+  this.system = system;
+  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
+  $('#display').empty();
+  this.svg = d3.select('#display')
+      .append('div')
+      .classed('svg-container', true)
+      .append('svg')
+      .attr('width', "100%")
+      .attr('height', this.height);
+  this.$svg = $('#display svg');
+  this._updateDimension();
+  this.svg.append('g').classed('data-frames', true);
+  this.svg.append('g').classed('control-frames', true);
+  this.svg.append('g').classed('nodes', true);
+  this.svg.append('g').classed('values', true);
 };
 
 Painter.prototype.setFps = function (fps) {
   this.fps = fps;
 };
 
-Painter.prototype.drawBackground = function () {
-  ctx = this.ctx;
-  ctx.save();
-  ctx.fillStyle = '#808080';
-  ctx.fillRect(0, 0, this.width, this.height);
-  ctx.restore();
+Painter.prototype.drawAll = function () {
+  this._drawNodes();
+  this._drawPrimaryLink();
+  this._drawSecondaryLink();
+  this._displayValues();
 };
 
-Painter.prototype.drawNodes = function () {
-  var ctx = this.ctx,
-      w = this.nodeWidth,
-      h = this.nodeHeight,
-      x = (this.width - w * 2) / 4,
-      y0 = this.margin,
-      y1 = this.height - this.margin - h;
-  ctx.save();
-  ctx.globalAlpha = 0.75;
-  ctx.fillStyle = '#606060';
-  ctx.fillRect(x, y0, w, h);
-  ctx.fillRect(x, y1, w, h);
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#202020';
-  ctx.strokeRect(x, y0, w, h);
-  ctx.strokeRect(x, y1, w, h);
-  ctx.restore();
-  ctx.save();
-  ctx.font = '20px Consolas, monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('Sender', x + w / 2, y0 + h / 2);
-  ctx.fillText('Receiver', x + w / 2, y1 + h / 2);
-  ctx.fillStyle = this.statusColors[this.system.node2.stats.rx];
-  ctx.fillRect(x + 12, y1 - 1, 8, 8);
-  ctx.restore();
+Painter.prototype._drawNodes = function () {
+  var self = this,
+      dx = this.margin + this.nodeWidth / 2,
+      nodes = this.svg.select('.nodes')
+        .selectAll('g')
+        .data([this.system.node1, this.system.node2]),
+      nodesEnter = nodes.enter().append('g');
+  nodesEnter.append('rect')
+      .attr('rx', 5)
+      .attr('ry', 5);
+  nodesEnter.append('text')
+      .text(function (d) { return d.name; });
+  nodes.attr('transform', function (d, i) {
+    var dy = (i * self.height);
+    return 'translate(' + dx + ',' + dy + ')';
+  });
+  nodes.select('rect')
+      .attr('x', -(this.nodeWidth / 2))
+      .attr('y', -(this.nodeHeight))
+      .attr('width', this.nodeWidth)
+      .attr('height', this.nodeHeight * 2);
+  nodes.select('text')
+      .attr('y', function (d, i) {
+        return self.nodeHeight / 2 - self.nodeHeight * i;
+      });
 };
 
-Painter.prototype.drawPrimaryLink = function () {
-  var ctx = this.ctx,
+Painter.prototype._drawPrimaryLink = function () {
+  var self = this,
       system = this.system,
-      frameColors = this.frameColors,
+      currentTime = system.clock.currentTime,
       w = this.nodeWidth / 3,
-      h = (this.height - (this.margin + this.nodeHeight) * 2) / system.a,
-      x = (this.width - this.nodeWidth * 2) / 4 + w / 4,
-      y = this.margin + this.nodeHeight,
-      d = (system.a + 1) / 3,
-      c = 128 / d,
-      i, e, t;
-  ctx.save();
-  ctx.lineWidth = Math.min(1, h / 20);
-  ctx.strokeStyle = '#fff';
-  ctx.font = Math.min(h - 1, 14) + 'px Consolas, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (i = 0; i < system.link1.queue.length; ++i) {
-    e = system.link1.queue[i];
-    t = system.clock.currentTime - e.time;
-    ctx.fillStyle = frameColors[e.error ? Math.round(Math.min(t + 1, d) * c) : 0];
-    ctx.fillRect(x, y + t * h, w, h);
-    ctx.strokeRect(x, y + t * h, w, h);
-    if (h > 1) {
-      ctx.fillStyle = '#fff';
-      ctx.fillText(e.sn, x + w / 2, y + t * h + h / 2);
-    };
-  };
-  ctx.restore();
+      h = (this.height - this.nodeHeight * 2) / system.params.a,
+      dx = self.margin + self.nodeWidth / 4,
+      frames = this.svg.select('.data-frames')
+        .selectAll('g')
+        .data(system.link1.queue, function (d) { return d.time; }),
+      framesEnter = frames.enter()
+        .append('g')
+        .classed('error', function (d) { return d.error; });
+  framesEnter.append('rect');
+  if (h > 3) {
+    framesEnter.append('text')
+        .text(function (d) { return d.sn; });
+  }
+  frames.attr('transform', function (d, i) {
+    var dy = self.nodeHeight + (currentTime - d.time) * h + h / 2;
+    return 'translate(' + dx + ',' + dy + ')';
+  });
+  frames.select('rect')
+      .attr('stroke-width', Math.min(Math.max(h / 20 - 0.25, 0), 1))
+      .attr('y', -(h / 2))
+      .attr('height', h)
+      .attr('x', -(w / 2))
+      .attr('width', w);
+  if (h > 3) {
+    frames.select('text').attr('font-size', Math.min(h * 2 / 3, 14));
+  } else {
+    frames.select('text').remove();
+  }
+  frames.exit().remove();
 };
 
-Painter.prototype.drawSecondaryLink = function () {
-  var ctx = this.ctx,
+Painter.prototype._drawSecondaryLink = function () {
+  var self = this,
       system = this.system,
+      currentTime = system.clock.currentTime,
       w = this.nodeWidth / 3,
-      h = (this.height - (this.margin + this.nodeHeight) * 2) / system.a / 4,
-      dh = h * 4,
-      x = (this.width - this.nodeWidth * 2) / 4 + this.nodeWidth - w * 5 / 4,
-      y = this.height - this.margin - this.nodeHeight - h / 2,
-      i, e, t;
-  ctx.save();
-  ctx.font = Math.min(dh - 1, 14) + 'px Consolas, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (i = 0; i < system.link2.queue.length; ++i) {
-    e = system.link2.queue[i];
-    t = system.clock.currentTime - e.time;
-    ctx.fillStyle = e.func === 'RR' ? '#606060' : '#817339';
-    ctx.fillRect(x, y - t * dh, w, h);
-    if (h > 1) {
-      ctx.fillStyle = '#fff';
-      ctx.fillText(e.func + ' ' + e.rn, x + w / 2, y - t * dh + h / 2);
-    };
-  };
-  ctx.restore();
+      h = (this.height - this.nodeHeight * 2) / system.params.a / 3,
+      dx = this.margin + this.nodeWidth - this.nodeWidth / 4,
+      frames = this.svg.select('.control-frames')
+        .selectAll('g')
+        .data(system.link2.queue, function (d) { return d.time; }),
+      framesEnter = frames.enter()
+        .append('g');
+  framesEnter.append('rect');
+  if (h > 3) {
+    framesEnter.append('text')
+        .text(function (d) { return d.func + ' ' + d.rn; });
+  }
+  frames.attr('transform', function (d, i) {
+    var dy = (self.height - self.nodeHeight) - (currentTime - d.time) * h * 3;
+    return 'translate(' + dx + ',' + dy + ')';
+  });
+  frames.select('rect')
+      .attr('y', -(h / 2))
+      .attr('height', h)
+      .attr('x', -(w / 2))
+      .attr('width', w);
+  if (h > 3) {
+    frames.select('text').attr('font-size', Math.min(h * 2, 14));
+  } else {
+    frames.select('text').remove();
+  }
+  frames.exit().remove();
 };
 
-Painter.prototype.drawSenderWindow = function () {
-  var ctx = this.ctx,
-      sender = this.system.node1,
-      width = this.width,
-      w = width / sender.txbuf.length,
-      h = 10,
-      i;
-  ctx.save();
-  ctx.lineWidth = Math.min(1, 50 / sender.w);
-  ctx.strokeStyle = '#fff';
-  ctx.font = '13px Consolas, monospace';
-  ctx.textBaseline = 'top';
-  for (i = 0; i < sender.txbuf.length; ++i) {
-    ctx.fillStyle = (i < (sender.txnext - sender.txbase + sender.s) % sender.s) ? '#404040' : '#87cefa';
-    ctx.fillRect(i * w, 0, w, h);
-    ctx.strokeRect(i * w, 0, w, h);
-    if (i === 0 || i === sender.txbuf.length - 1) {
-      ctx.textAlign = i === 0 ? 'left' : 'right';
-      ctx.fillStyle = '#fff';
-      ctx.fillText((i + sender.txbase) % sender.s, i === 0 ? 3 : width - 3, h + 1);
-    };
-  };
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('Sender Send Window', width / 2, h + 1);
-  ctx.restore();
-};
-
-Painter.prototype.drawReceiverWindow = function () {
-  var ctx = this.ctx,
-      receiver = this.system.node2,
-      width = this.width,
-      height = this.height,
-      w = width / receiver.rxbuf.length,
-      h = 10,
-      i, e;
-  ctx.save();
-  ctx.lineWidth = Math.min(1, 50 / receiver.w);
-  ctx.strokeStyle = '#fff';
-  ctx.font = '13px Consolas, monospace';
-  ctx.textBaseline = 'bottom';
-  for (i = 0; i < receiver.rxbuf.length; ++i) {
-    e = receiver.rxbuf.get(i);
-    ctx.fillStyle = e !== undefined ? '#008000' : '#87cefa';
-    ctx.fillRect(i * w, height - h, w, h);
-    ctx.strokeRect(i* w, height - h, w, h);
-    if (i === 0 || i === receiver.rxbuf.length - 1) {
-      ctx.textAlign = i === 0 ? 'left' : 'right';
-      ctx.fillStyle = '#fff';
-      ctx.fillText((i + receiver.rxbase) % receiver.s, i === 0 ? 3 : width - 3, height - h - 1);
-    };
-  };
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('Receiver Receive Window', width / 2, height - h - 1);
-  ctx.restore();
-};
-
-Painter.prototype.drawStatistics = function () {
-  var ctx = this.ctx,
+Painter.prototype._displayValues = function () {
+  var self = this,
       system = this.system,
-      clock = system.clock,
       sender = system.node1,
       receiver = system.node2,
-      width = this.width,
-      h = 18,
-      x = width / 2,
-      y = this.margin,
-      p = system.link1.stats.errors / Math.max(1, system.link1.stats.total),
-      u = receiver.stats.rxiframes / Math.max(1, Math.floor(clock.currentTime - system.a));
-  ctx.save();
-  ctx.font = (h - 5) + 'px Consolas, monospace';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('Window size: ' + sender.w, x, y);
-  ctx.fillText('t_prop/t_trans: ' + system.a, x, y + h);
-  ctx.fillText('Frame error rate (target): ' + system.p, x, y + h * 2);
-  ctx.fillText('Frame error rate (current): ' + p.toFixed(8), x, y + h * 3);
-  ctx.fillText('Sender timeout: ' + sender.txtimeout, x, y + h * 4);
-  ctx.fillText('Utilization: ' + u.toFixed(6), x, y + h * 5);
-  ctx.fillText('Elapsed time: ' + clock.currentTime.toFixed(2), x, y + h * 6);
-  ctx.restore();
-};
-
-Painter.prototype.drawReceivedData = function () {
-  var ctx = this.ctx,
-      receivedData = this.receivedData,
-      h = 18,
-      x = this.width / 2,
-      y = this.height - this.margin - this.nodeHeight,
-      t;
-  ctx.save();
-  ctx.font = '13px Consolas, monospace';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('Data forwarded to the upper layer:', x, y);
-  if (receivedData.length > 0) {
-    t = receivedData[0];
-    if (receivedData.length > 1) {
-      t += ' to ' + receivedData[receivedData.length - 1];
-    }
-    ctx.fillText(t, x, y + h);
-  };
-  ctx.restore();
+      x = this.width * 6 / 13 + (this.margin + this.nodeWidth) * 7 / 13,
+      values = this.svg.select('.values')
+        .selectAll('g')
+        .data([
+          sender.txbase % sender.s,
+          (sender.txbase + sender.txbuf.length - 1) % sender.s,
+          sender.txnext % sender.s,
+          '',
+          this.protocol,
+          sender.w,
+          sender.a,
+          sender.txtimeout,
+          system.link1.currentFrameErrorRate().toFixed(6),
+          system.node2.currentUtilization().toFixed(6),
+          system.clock.currentTime.toPrecision(3),
+          '',
+          receiver.rxbase % receiver.s
+        ]);
+  var valuesEnter = values.enter().append('g');
+  valuesEnter.append('text')
+      .classed('name', true)
+      .text(function (d, i) { return self.labels[i]; });
+  valuesEnter.append('text')
+      .classed('value', true);
+  values.select('.name')
+      .attr('x', x - 5)
+      .attr('y', function (d, i) {
+        return (i + 2) * self.lineHeight;
+      });
+  values.select('.value')
+      .text(function (d) { return d; })
+      .attr('x', x + 5)
+      .attr('y', function (d, i) {
+        return (i + 2) * self.lineHeight;
+      });
 };

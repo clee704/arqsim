@@ -1,38 +1,46 @@
 function App() {
+  // objects
   this.clock = null;
   this.sender = null;
   this.receiver = null;
   this.system = null;
-  this.loopTimer = null;
-  this.targetSimulationSpeed = null;
-  this.started = null;
-  this.paused = null;
+
+  // data
   this.dataseq = null;
   this.receivedData = null;
-  this.painter = null;
+
+  // app states
+  this.started = null;
+  this.paused = null;
+  this.simulationSpeed = null;
+
+  // others
+  this.painter = new Painter();
+  this.loopTimer = null;
+
+  this._init();
 }
 
-App.prototype.init = function () {
+App.prototype._init = function () {
+  this._bindListeners();
+  this._updateDisplays();
+};
+
+App.prototype._bindListeners = function () {
   var self = this;
-  $('[name=protocol], #w, #a, #p').change(function () {
-    self._updateUtilization();
+  $('#w, #a').change(function () {
+    $('#timeout').val(Number($('#a').val()) * 2 + Number($('#w').val()) + 1);
   });
-  this._updateUtilization();
-  $('#framerate').change(function () { self.setFps($(this).val()); });
-  $('#speed-slider').slider({
+  //$('#framerate').change(function () { self.setFps($(this).val()); });
+  $('#simulation-speed-slider').slider({
     value: 0,
     min: -50,
     max: 250,
     slide: function (e, ui) { self.setSimulationSpeed(ui.value); }
   });
-  this.setSimulationSpeed($('#speed-slider').slider('value'));
   $('#start').click(function () {
     self.start();
     return false;
-  });
-  $('#parameters input').keydown(function (e) {
-    var RETURN = 13;
-    if (e.which === RETURN) self.start();
   });
   $('#pause').click(function () {
     self.pause(!self.paused);
@@ -40,11 +48,28 @@ App.prototype.init = function () {
   });
 };
 
-App.prototype.start = function () {
-  var self = this,
-      vars = this.getVariables();
+App.prototype._updateDisplays = function () {
+  this.setSimulationSpeed($('#simulation-speed-slider').slider('value'));
+};
 
+App.prototype.start = function () {
   clearTimeout(this.loopTimer);
+
+  this._createObjects();
+  this.dataseq = 1;
+  this.receivedData = [];
+
+  this.painter.setSystem(this.system);
+
+  this.started = true;
+  this.pause(false);
+  $('#pause').show();
+  $('#start').text('Start new');
+};
+
+App.prototype._createObjects = function() {
+  var self = this,
+      params = this.getParameters();
 
   // start the simulation at 1 second before operating
   this.clock = new Clock(-1, 13);
@@ -53,25 +78,17 @@ App.prototype.start = function () {
     interval: 1,
     func: function () { self._operate(); }
   });
-  if (vars.protocol == 'gbn') {
-    this.sender = new GbnNode(vars.w, vars.a);
-    this.receiver = new GbnNode(vars.w, vars.a);
+  if (params.protocol == 'gbn') {
+    this.sender = new GbnNode(params);
+    this.receiver = new GbnNode(params);
   } else {
-    this.sender = new SrNode(vars.w, vars.a);
-    this.receiver = new SrNode(vars.w, vars.a);
+    this.sender = new SrNode(params);
+    this.receiver = new SrNode(params);
   }
-  this.system = new System(vars.a, vars.p, this.sender, this.receiver);
+  this.sender.setName('Sender');
+  this.receiver.setName('Receiver');
+  this.system = new System(params, this.sender, this.receiver);
   this.system.setClock(this.clock);
-
-  this.dataseq = 1;
-  this.receivedData = [];
-  this.painter = new Painter(this.system, this.receivedData);
-  this.painter.init();
-  this.painter.drawBackground();
-  this.painter.drawNodes();
-
-  this.started = true;
-  this.pause(false);
 };
 
 App.prototype.pause = function (paused) {
@@ -80,43 +97,49 @@ App.prototype.pause = function (paused) {
   $('#pause').html(this.paused ? 'Resume' : 'Pause');
 };
 
-App.prototype.getVariables = function () {
+App.prototype.getParameters = function () {
   return {
-    protocol: $('[name=protocol]:checked').val(),
-    w: this._getVariable($('#w'), true),
-    a: this._getVariable($('#a'), true),
-    p: this._getVariable($('#p'))
+    protocol: $('#protocol option:selected').val(),
+    w: this._getParameter($('#w'), true),
+    a: this._getParameter($('#a'), true),
+    timeout: this._getParameter($('#timeout'), true),
+    p: this._getParameter($('#p'))
   };
 };
 
-App.prototype._getVariable = function ($elem, round) {
-  var v = Number($elem.val().replace(/[^0-9.]/g, '')),
+App.prototype._getParameter = function ($elem, round) {
+  var param = Number($elem.val().replace(/[^0-9.]/g, '')),
       min = Number($elem.attr('min')),
       max = Number($elem.attr('max'));
-  if (isNaN(v)) v = Number($elem.attr('value'));
-  if (round) v = Math.round(v);
-  if (v < min) v = min;
-  if (v > max) v = max;
-  $elem.val(v);
-  return v;
+  if (isNaN(param)) param = Number($elem.attr('value'));
+  if (round) param = Math.round(param);
+  if (param < min) param = min;
+  if (param > max) param = max;
+  $elem.val(param);
+  return param;
 };
 
 App.prototype.setFps = function (value) {
-  if ($('#framerate option[value=' + value + ']').length == 0) return;
+  //if ($('#framerate option[value=' + value + ']').length == 0) return;
   this.painter.setFps(value);
-  $('#framerate').val(value);
+  //$('#framerate').val(value);
 };
 
 App.prototype.setSimulationSpeed = function (value) {
-  if (value < $('#speed-slider').slider('option', 'min') ||
-      value > $('#speed-slider').slider('option', 'max')) {
+  if (value < $('#simulation-speed-slider').slider('option', 'min') ||
+      value > $('#simulation-speed-slider').slider('option', 'max')) {
     return;
   }
-  this.targetSimulationSpeed = Math.pow(10, value / 50);
-  $('#speed-value').html(this.targetSimulationSpeed.toFixed(1));
-  $('#speed-slider').slider('value', value);
+  this.simulationSpeed = Math.pow(10, value / 50);
+  $('#simulation-speed').html(this.simulationSpeed.toFixed(1));
+  $('#simulation-speed-slider').slider('value', value);
 };
 
+// Call this._tick() this.painter.fps times per second.
+// If the computation is too heavy (usually due to too high simulation speed),
+// this._tick() may exceed the time it was assigned
+// (1 / this.painter.fps seconds). In that case, both frame rate and simulation
+// speed can be lower than user-specified value.
 App.prototype._startLoop = function () {
   var self = this,
       currentLoopTime = Date.now();
@@ -128,21 +151,16 @@ App.prototype._startLoop = function () {
 
 App.prototype._tick = function () {
   try {
-    this.clock.advance(this.targetSimulationSpeed / this.painter.fps);
+    this.clock.advance(this.simulationSpeed / this.painter.fps);
   } catch (ex) {
     alert(ex);
     throw ex;  // brutal way to stop the loop
   }
-  this.painter.drawBackground();
-  this.painter.drawPrimaryLink();
-  this.painter.drawSecondaryLink();
-  this.painter.drawSenderWindow();
-  this.painter.drawReceiverWindow();
-  this.painter.drawNodes();
-  this.painter.drawStatistics();
+  this.painter.drawAll();
 };
 
-// Implicitly called by this.clock.advance() in this._tick()
+// Implicitly called by this.clock.advance() in this._tick().
+// It mocks two nodes one sending increasing numbers every second to the other.
 App.prototype._operate = function () {
   this.receivedData = this.receiver.recv();
   // do something
@@ -152,20 +170,4 @@ App.prototype._operate = function () {
   } catch (e) {
     // sender may throw an error if its buffer is full
   }
-};
-
-App.prototype._updateUtilization = function () {
-  var vars = this.getVariables(),
-      u = 0;
-  if (vars.protocol == 'gbn') {
-    if (vars.w >= 1 + 2 * vars.a) {
-      u = (1 - vars.p) / (1 + 2 * vars.a * vars.p);
-    } else {
-      u = vars.w * (1 - vars.p) /
-          ((1 + 2 * vars.a) * (1 - vars.p + vars.w * vars.p));
-    }
-  } else {
-    // TODO
-  }
-  $('#u').text(u);
 };

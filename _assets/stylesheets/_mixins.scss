@@ -1,4 +1,4 @@
-%input-dimensions {
+%input-properties {
   width: 206px;
   height: 20px;
   padding: 4px 6px;
@@ -7,4 +7,21 @@
   display: inline-block;
   vertical-align: middle;
   color: #555;
+}
+
+@mixin transform($args...) {
+  -webkit-transform: $args;
+  -ms-transform: $args;
+  transform: $args;
+}
+
+@mixin transition($args...) {
+  -webkit-transition: $args;
+  transition: $args;
+}
+
+@mixin transition-transform($args...) {
+  -webkit-transition: -webkit-transform $args;
+  transition: -ms-transform $args;
+  transition: transform $args;
 }
