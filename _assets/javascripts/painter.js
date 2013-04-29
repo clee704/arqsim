@@ -12,6 +12,7 @@ function Painter() {
     'SN min',
     'SN max',
     'SN next',
+    'Timer',
     '',
     'Protocol',
     'W',
@@ -244,6 +245,7 @@ Painter.prototype._displayValues = function () {
       system = this.system,
       sender = system.node1,
       receiver = system.node2,
+      currentTime = system.clock.currentTime,
       x = this.width * 6 / 13 + (this.margin + this.nodeWidth) * 7 / 13,
       values = this.svg.select('.values')
         .selectAll('g')
@@ -251,6 +253,7 @@ Painter.prototype._displayValues = function () {
           sender.txbase % sender.s,
           (sender.txbase + sender.txbuf.length - 1) % sender.s,
           sender.txnext % sender.s,
+          Math.floor(currentTime - sender.txtimers.get(0)),
           '',
           this.protocol,
           sender.w,
@@ -258,7 +261,7 @@ Painter.prototype._displayValues = function () {
           sender.txtimeout,
           system.link1.currentFrameErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
-          system.clock.currentTime.toPrecision(3),
+          currentTime.toPrecision(3),
           '',
           receiver.rxbase % receiver.s
         ]);
@@ -271,12 +274,12 @@ Painter.prototype._displayValues = function () {
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
-        return (i + 2) * self.lineHeight;
+        return (i + 1.5) * self.lineHeight;
       });
   values.select('.value')
       .text(function (d) { return d; })
       .attr('x', x + 5)
       .attr('y', function (d, i) {
-        return (i + 2) * self.lineHeight;
+        return (i + 1.5) * self.lineHeight;
       });
 };
