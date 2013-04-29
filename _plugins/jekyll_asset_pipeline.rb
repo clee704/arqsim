@@ -21,19 +21,21 @@ module JekyllAssetPipeline
     end
 
     def compress
+      return @content if ENV['DEBUG']
       return YUI::CssCompressor.new.compress(@content)
     end
   end
 
-  # class JavaScriptCompressor < JekyllAssetPipeline::Compressor
-  #   require 'yui/compressor'
+  class JavaScriptCompressor < JekyllAssetPipeline::Compressor
+    require 'yui/compressor'
 
-  #   def self.filetype
-  #     '.js'
-  #   end
+    def self.filetype
+      '.js'
+    end
 
-  #   def compress
-  #     return YUI::JavaScriptCompressor.new(munge: true).compress(@content)
-  #   end
-  # end
+    def compress
+      return @content if ENV['DEBUG']
+      return YUI::JavaScriptCompressor.new(munge: true).compress(@content)
+    end
+  end
 end
