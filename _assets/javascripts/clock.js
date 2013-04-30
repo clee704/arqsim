@@ -39,6 +39,12 @@ Clock.prototype.advance = function (dtRaw) {
   this.currentTime = endTime;
 };
 
+Clock.prototype.setTime = function (time) {
+  var dtRaw = time - this.currentTime;
+  if (dtRaw < 0) throw 'cannot go back to the past';
+  this.advance(dtRaw);
+};
+
 Clock.prototype.addEvent = function (args) {
   // args = {time, interval, func, obj, args}
   // args.time is relative to current time.
