@@ -57,38 +57,47 @@ Painter.prototype._updateDimension = function () {
 };
 
 Painter.prototype._drawLegend = function () {
-  var createSvg = function (selector, classes) {
+  var defaultWidth = 100,
+      defaultHeight = 30,
+      createSvg = function (selector, classes) {
         var svg = d3.select(selector)
           .append('svg')
-          .attr('width', 100)
-          .attr('height', 30)
+          .attr('width', defaultWidth)
+          .attr('height', defaultHeight)
           .append('g')
           .classed(classes[0], true)
-          .attr('transform', 'translate(50,15)');
+          .attr('transform', 'translate(' + (defaultWidth / 2) + ',' +
+            (defaultHeight / 2) + ')');
         if (classes[1]) {
           svg = svg.append('g').classed(classes[1], true);
         }
         return svg;
       },
-      addRect = function (svg, height) {
-        return svg.append('rect')
-          .attr('x', -50)
-          .attr('y', -(height / 2 || 15))
-          .attr('width', 100)
-          .attr('height', height || 30);
+      addRect = function (svg, options) {
+        var rect = svg.append('rect')
+          .attr('x', -(defaultWidth / 2))
+          .attr('y', -((options.height || defaultHeight) / 2))
+          .attr('width', defaultWidth)
+          .attr('height', options.height || defaultHeight);
+        if (options.rx) {
+          rect.attr('rx', options.rx).attr('ry', options.ry);
+        }
+        return rect;
       },
       addText = function (svg, text) {
         return svg.append('text').text(text);
       },
       createSymbol = function (options) {
         var svg = createSvg(options.selector, options.classes);
-        addRect(svg, options.height);
+        addRect(svg, options);
         addText(svg, options.text);
       }
   createSymbol({
     selector: '#legend .node',
     classes: ['nodes'],
-    text: 'Name'
+    text: 'Name',
+    rx: 5,
+    ry: 5
   });
   createSymbol({
     selector: '#legend .frame',
@@ -104,13 +113,13 @@ Painter.prototype._drawLegend = function () {
     selector: '#legend .ack',
     classes: ['control-frames'],
     text: 'RR RN',
-    height: 20
+    height: defaultHeight / 2
   });
   createSymbol({
     selector: '#legend .nack',
     classes: ['control-frames'],
     text: 'REJ RN',
-    height: 20
+    height: defaultHeight / 2
   });
 };
 
