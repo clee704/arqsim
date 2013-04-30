@@ -95,17 +95,17 @@ describe('Go-Back-N nodes', function () {
       clock.advance(15);
       expect(sender.rxlink.queue).toEqual([
         {type: 'S', func: 'RR', rn: 1, time: 11},
-        {type: 'S', func: 'REJ', rn: 1, time: 13}
+        {type: 'S', func: 'REJ', rn: 1, time: 12}
       ]);
     });
 
-    it('should reject data from link if rxbuf is full', function () {
+    it('should discard frames from link if rxbuf is full', function () {
       sender.send(1); // depart at 0, arrive at 11
       sender.send(2); // 1, 12
-      clock.advance(13); // time = 12
+      sender.send(3); // 1, 13
+      clock.advance(14); // time = 13
       expect(receiver.txlink.queue).toEqual([
         {type: 'S', func: 'RR', rn: 1, time: 11},
-        {type: 'S', func: 'REJ', rn: 1, time: 12}
       ]);
     });
 
@@ -123,36 +123,36 @@ describe('Go-Back-N nodes', function () {
       expect(receiver.recv()).toEqual([1]);
       clock.advance(1); // time = 12
       expect(receiver.recv()).toEqual([2]);
-      clock.advance(1); // time = 13
-      expect(receiver.recv()).toEqual([]);
-      clock.advance(1); // time = 14, NAK sent
+      clock.advance(1); // time = 13, NAK sent
       expect(receiver.recv()).toEqual([]);
       expect(receiver.txlink.queue).toEqual([
         {type: 'S', func: 'RR', rn: 1, time: 11},
         {type: 'S', func: 'RR', rn: 2, time: 12},
-        {type: 'S', func: 'REJ', rn: 2, time: 14}
+        {type: 'S', func: 'REJ', rn: 2, time: 13}
       ]);
-      clock.advance(7);  // time = 21, the first ACK received
+      clock.advance(8);  // time = 21, the first ACK received
       sender.send(5);
       clock.advance(1);
       expect(sender.txlink.queue).toEqual([
         {type: 'I', data: 5, sn: 4, time: 23}
       ]);
-      clock.advance(2);  // time = 24, NAK received
+      clock.advance(1);  // time = 23, NAK received
       expect(sender.txlink.queue).toEqual([
         {type: 'I', data: 5, sn: 4, time: 23},
-        {type: 'I', data: 3, sn: 2, time: 25}
+        {type: 'I', data: 3, sn: 2, time: 24}
       ]);
     });
 
     it('should detect timeout', function () {
       sender.send(1);
-      spyOn(Math, 'random').andReturn(-1);
-      clock.advance(1);
+      spyOn(Math, 'random').andReturn(-1);  // make errors
+      clock.advance(1);  // time = 0, an errorneous frame is sent
       Math.random.andReturn(1);
-      clock.advance(sender.txtimeout);
+      clock.advance(11);  // time = 11
+      receiver.txlink.queue.length = 0;  // destroy NAK
+      clock.advance(12);  // time = timeout + 1
       expect(sender.txlink.queue).toEqual([
-        {type: 'I', data: 1, sn: 0, time: sender.txtimeout + 1}
+        {type: 'I', data: 1, sn: 0, time: sender.txtimeout + 2}
       ]);
     });
 
