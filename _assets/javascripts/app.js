@@ -29,7 +29,9 @@ App.prototype._init = function () {
 App.prototype._bindListeners = function () {
   var self = this;
   $('#w, #a').change(function () {
-    $('#timeout').val(Number($('#a').val()) * 2 + Number($('#w').val()) + 1);
+    var params = self.getParameters();
+    $('#timeout').val(params.a * 2 + params.w + 1);
+    $('#rtt').text(params.a * 2 + 1);
   });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
   $('#simulation-speed-slider').slider({
@@ -100,19 +102,20 @@ App.prototype.pause = function (paused) {
 App.prototype.getParameters = function () {
   return {
     protocol: $('#protocol option:selected').val(),
-    w: this._getParameter($('#w'), true),
-    a: this._getParameter($('#a'), true),
-    timeout: this._getParameter($('#timeout'), true),
-    p: this._getParameter($('#p'))
+    w: this._getParameter('#w'),
+    a: this._getParameter('#a'),
+    timeout: this._getParameter('#timeout'),
+    p: this._getParameter('#p')
   };
 };
 
-App.prototype._getParameter = function ($elem, round) {
-  var param = Number($elem.val().replace(/[^0-9.]/g, '')),
+App.prototype._getParameter = function (selector) {
+  var $elem = $(selector),
+      param = Number($elem.val().replace(/[^0-9.]/g, '')),
       min = Number($elem.attr('min')),
       max = Number($elem.attr('max'));
   if (isNaN(param)) param = Number($elem.attr('value'));
-  if (round) param = Math.round(param);
+  if ($elem.data('round')) param = Math.round(param);
   if (param < min) param = min;
   if (param > max) param = max;
   $elem.val(param);

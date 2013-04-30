@@ -52,7 +52,7 @@
               <div class='param clearfix'>
                 <div class='label-and-input'>
                   <label for='w'><var>W</var> =</label>
-                  <input id='w' max='1023' min='1' type='number' value='7' class='input-small'>
+                  <input id='w' max='1023' min='1' type='number' value='7' data-round='1' class='input-small'>
                 </div>
                 <div class='help-block'>
                   Window size
@@ -61,19 +61,21 @@
               <div class='param clearfix'>
                 <div class='label-and-input'>
                   <label for='a'><var>a</var> =</label>
-                  <input id='a' max='1000' min='1' type='number' value='3' class='input-small'>
+                  <input id='a' max='1000' min='1' type='number' value='3' data-round='1' class='input-small'>
                 </div>
                 <div class='help-block'>
-                  Ratio of propagation time to transmission time
+                  Propagation time. Packet length is assumed to be constant and
+                  equal to one time unit. Round trip time is
+                  2<var>a</var> + 1 = <span id='rtt'>7</span>.
                 </div>
               </div>
               <div class='param clearfix'>
                 <div class='label-and-input'>
                   <label for='timeout'>timeout =</label>
-                  <input id='timeout' max='10000' min='1' type='number' value='14' class='input-small'>
+                  <input id='timeout' max='10000' min='1' type='number' value='14' data-round='1' class='input-small'>
                 </div>
                 <div class='help-block'>
-                  Sender resends the first unacknowledged frame if it doesn't
+                  Sender retransmits the first unacknowledged packet if it doesn't
                   receive ACK in a given timeout period.
                 </div>
               </div>
@@ -83,8 +85,8 @@
                   <input id='p' max='1' min='0' step='any' type='number' value='0.05' class='input-small'>
                 </div>
                 <div class='help-block'>
-                  Frame error rate;
-                  probability that a single frame is transmitted with errors
+                  Block error rate;
+                  probability that a single packet is transmitted with errors
                   or lost and cannot be recovered
                 </div>
               </div>
@@ -102,27 +104,33 @@
         <h2 data-toggle='collapse' data-target='#description'>Description</h2>
         <div id='description' class='collapse in'>
           <p>
-            Sender tries to send data to Receiver every second. One second
-            in simulation is equal to the transmission time of a data frame,
-            which is the time from the first bit until the last bit of a frame
-            has left the transmitting node.
+            When a simulation starts, Sender transmits a packet to Receiver every
+            time unit unless its window is full, i.e. there are <var>W</var>
+            unacknowledged packets in its queue.
           </p>
           <p>
             Following assumptions and simplifications are made in this simulation:
           </p>
           <ul>
             <li>
+              Packet length is constant and equal to one time unit.
+            </li>
+            <li>
+              Errors in a packet are independent from errors in previous packets.
+            </li>
+            <li>
               Processing time is zero. For instance, as soon as the receiver
-              receives a data frame, it immediately sends back an ACK or NACK frame.
+              receives a packet, it immediately sends back an ACK or NAK packet.
               The sender also operates this way.
             </li>
             <li>
-              ACK and NACK frames don't have bit length. They have zero
-              transmission time and are always sent error-free.
+              ACK and NAK packet lengths are equal to zero and always sent
+              error-free.
             </li>
             <li>
-              If a data frame is sent with errors, the receiver cannot know if the
-              frame was a data frame or something else and therefore does nothing.
+              If a data packet is sent with errors, the receiver cannot know if the
+              packet was a data packet or something else and therefore does nothing
+              but discards it.
             </li>
           </ul>
         </div>
@@ -148,7 +156,7 @@
               </tr>
               <tr>
                 <td class='nack symbol'></td>
-                <td>NACK frame with a request number <i>RN</i></td>
+                <td>NAK frame with a request number <i>RN</i></td>
               </tr>
             </tbody>
           </table>

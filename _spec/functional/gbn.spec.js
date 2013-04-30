@@ -125,7 +125,7 @@ describe('Go-Back-N nodes', function () {
       expect(receiver.recv()).toEqual([2]);
       clock.advance(1); // time = 13
       expect(receiver.recv()).toEqual([]);
-      clock.advance(1); // time = 14, NACK sent
+      clock.advance(1); // time = 14, NAK sent
       expect(receiver.recv()).toEqual([]);
       expect(receiver.txlink.queue).toEqual([
         {type: 'S', func: 'RR', rn: 1, time: 11},
@@ -138,7 +138,7 @@ describe('Go-Back-N nodes', function () {
       expect(sender.txlink.queue).toEqual([
         {type: 'I', data: 5, sn: 4, time: 23}
       ]);
-      clock.advance(2);  // time = 24, NACK received
+      clock.advance(2);  // time = 24, NAK received
       expect(sender.txlink.queue).toEqual([
         {type: 'I', data: 5, sn: 4, time: 23},
         {type: 'I', data: 3, sn: 2, time: 25}
