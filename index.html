@@ -75,7 +75,7 @@
                   <input id='timeout' max='10000' min='1' type='number' value='14' data-round='1' class='input-small'>
                 </div>
                 <div class='help-block'>
-                  Sender resends the first unacknowledged packet if it doesn't
+                  Sender retransmits the first unacknowledged packet if it doesn't
                   receive ACK in a given timeout period.
                 </div>
               </div>
@@ -104,7 +104,7 @@
         <h2 data-toggle='collapse' data-target='#description'>Description</h2>
         <div id='description' class='collapse in'>
           <p>
-            When a simulation starts, Sender sends a packet to Receiver every
+            When a simulation starts, Sender transmits a packet to Receiver every
             time unit unless its window is full, i.e. there are <var>W</var>
             unacknowledged packets in its queue.
           </p>
