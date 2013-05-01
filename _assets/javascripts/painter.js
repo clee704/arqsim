@@ -253,7 +253,7 @@ Painter.prototype._displayValues = function () {
       sender = system.node1,
       receiver = system.node2,
       currentTime = system.clock.currentTime,
-      x = this.width * 6 / 13 + (this.margin + this.nodeWidth) * 7 / 13,
+      x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
