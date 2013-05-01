@@ -2,13 +2,6 @@ function Node(params) {
   if (params === undefined) params = {};
   this.w = params.w;  // window size
   this.a = params.a;  // ratio of propagation delay relative to transmission time
-  this.txbuf = new CircularBuffer(params.w);
-  this.txextra = null;  // extra buffer
-  this.txbase = 0;
-  this.txnext = 0;  // sequence number of the first unsent frame
-  this.txuser = 0;  // index of the first available slot in txbuf
-  this.rxbase = 0;
-  this.rxuser = 0;  // index + 1 of the last received frame in rxbuf
   this.stats = {rx: 'ready', rxiframes: 0};
   this.name = null;
 
@@ -16,13 +9,6 @@ function Node(params) {
   this.clock = null;
   this.txlink = null;
   this.rxlink = null;
-
-  // following variables must be defined in a subclass
-  this.s = null;  // # of sequence numbers
-  this.rxbuf = null;
-
-  // following methods must be implemented in a subclass
-  // _recvI, _recvS
 }
 
 Node.prototype.setClock = function (clock) {
@@ -44,7 +30,33 @@ Node.prototype.setName = function (name) {
   this.name = name;
 };
 
-Node.prototype.send = function (data) {
+Node.prototype.currentUtilization = function () {
+  return this.stats.rxiframes /
+      Math.max(1, Math.floor(this.clock.currentTime - this.a));
+};
+
+Node.prototype._operate = function () {
+  this._recv();
+  this._send();
+};
+
+
+function GbnNode(params) {
+  Node.call(this, params);
+  this.txbuf = new CircularBuffer(params.w);
+  this.txextra = null;  // extra buffer
+  this.txbase = 0;
+  this.txnext = 0;  // sequence number of the first unsent frame
+  this.txuser = 0;  // index of the first available slot in txbuf
+  this.rxbase = 0;
+  this.rxuser = 0;  // index + 1 of the last received frame in rxbuf
+  this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
+  this.rxbuf = new CircularBuffer(1);  // dummy
+}
+GbnNode.prototype = new Node;
+GbnNode.prototype.constructor = GbnNode;
+
+GbnNode.prototype.send = function (data) {
   var w = this.w,
       i = this.txuser;
   if (i === w && this.txextra !== null) throw 'buffer full';
@@ -59,7 +71,17 @@ Node.prototype.send = function (data) {
   }
 };
 
-Node.prototype.recv = function () {
+GbnNode.prototype._send = function () {
+  var s = this.s,
+      sn = this.txnext,
+      i = (sn - this.txbase + s) % s;
+  if (i < this.txuser) {
+    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
+    this.txnext = (sn + 1) % s;
+  }
+};
+
+GbnNode.prototype.recv = function () {
   var rxbuf = this.rxbuf,
       rxbase = this.rxbase,
       rxuser = this.rxuser,
@@ -74,17 +96,7 @@ Node.prototype.recv = function () {
   return data;
 };
 
-Node.prototype.currentUtilization = function () {
-  return this.stats.rxiframes /
-      Math.max(1, Math.floor(this.clock.currentTime - this.a));
-};
-
-Node.prototype._operate = function () {
-  this._recv();
-  this._send();
-};
-
-Node.prototype._recv = function () {
+GbnNode.prototype._recv = function () {
   var frame = this.rxlink.read();
   if (!frame) {
     this.stats.rx = 'ready';
@@ -96,26 +108,6 @@ Node.prototype._recv = function () {
     // unrecognizable frame
   }
 };
-
-Node.prototype._send = function () {
-  var s = this.s,
-      sn = this.txnext,
-      i = (sn - this.txbase + s) % s;
-  if (i < this.txuser) {
-    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
-    this.txnext = (sn + 1) % s;
-  }
-};
-
-
-function GbnNode(params) {
-  Node.call(this, params);
-  // # of sequence numbers
-  this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
-  this.rxbuf = new CircularBuffer(1);  // dummy
-}
-GbnNode.prototype = new Node;
-GbnNode.prototype.constructor = GbnNode;
 
 GbnNode.prototype._recvI = function (frame) {
   var s = this.s,
