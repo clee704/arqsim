@@ -12,7 +12,6 @@ function Painter() {
     'SN min',
     'SN max',
     'SN next',
-    'Timer',
     '',
     'Protocol',
     'W',
@@ -262,7 +261,6 @@ Painter.prototype._displayValues = function () {
           sender.txbase % sender.s,
           (sender.txbase + sender.txbuf.length - 1) % sender.s,
           sender.txnext % sender.s,
-          Math.floor(currentTime - sender.txtimers.get(0)),
           '',
           this.protocol,
           sender.w,
@@ -283,12 +281,12 @@ Painter.prototype._displayValues = function () {
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
-        return (i + 1.5) * self.lineHeight;
+        return (i + 2) * self.lineHeight;
       });
   values.select('.value')
       .text(function (d) { return d; })
       .attr('x', x + 5)
       .attr('y', function (d, i) {
-        return (i + 1.5) * self.lineHeight;
+        return (i + 2) * self.lineHeight;
       });
 };
