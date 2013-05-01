@@ -19,11 +19,10 @@ function Node(params) {
 
   // following variables must be defined in a subclass
   this.s = null;  // # of sequence numbers
-  this.txtimers = null;
   this.rxbuf = null;
 
   // following methods must be implemented in a subclass
-  // _recvI, _recvS, _checkTimeout, _setTimer
+  // _recvI, _recvS
 }
 
 Node.prototype.setClock = function (clock) {
@@ -81,7 +80,6 @@ Node.prototype.currentUtilization = function () {
 };
 
 Node.prototype._operate = function () {
-  this._checkTimeout();
   this._recv();
   this._send();
 };
@@ -106,7 +104,6 @@ Node.prototype._send = function () {
   if (i < this.txuser) {
     this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
     this.txnext = (sn + 1) % s;
-    this._setTimer(this.clock.currentTime, sn, i);
   }
 };
 
@@ -115,10 +112,7 @@ function GbnNode(params) {
   Node.call(this, params);
   // # of sequence numbers
   this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
-  this.txtimers = new CircularBuffer(params.w);
-  this.txtimeout = params.timeout;
   this.rxbuf = new CircularBuffer(1);  // dummy
-  this.rxrejd = false;  // needed to send REJ only once per go-back
 }
 GbnNode.prototype = new Node;
 GbnNode.prototype.constructor = GbnNode;
@@ -130,17 +124,14 @@ GbnNode.prototype._recvI = function (frame) {
       rxuser = this.rxuser,
       i = (frame.sn - rxbase + s) % s;
   this.stats.rx = 'discard';
+  if (i !== rxuser) return;
   if (frame.error) {
-    if (!this.rxrejd) {
-      this.stats.rx = 'error';
-      this.rxrejd = true;
-      this.txlink.write({type: 'S', func: 'REJ', rn: (rxbase + rxuser) % s});
-    }
-  } else if (i === rxuser && rxbuf.get(i) === undefined) {
+    this.stats.rx = 'error';
+    this.txlink.write({type: 'S', func: 'REJ', rn: (rxbase + rxuser) % s});
+  } else if (rxbuf.get(i) === undefined) {
     rxbuf.set(i, frame.data);
     rxuser++;
     this.rxuser = rxuser;
-    this.rxrejd = false;
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
     this.txlink.write({type: 'S', func: 'RR', rn: (rxbase + rxuser) % s});
@@ -152,38 +143,24 @@ GbnNode.prototype._recvS = function (frame) {
       s = this.s,
       txbuf = this.txbuf,
       txbase = this.txbase,
-      txtimers = this.txtimers,
       rn = frame.rn,
       i = (rn - txbase + s) % s,
       j = (this.txnext - txbase + s) % s;
-  if (i > j) return;  // timed out
   if (i > 0 && i <= w) {
     this.txbase = (txbase + i) % s;
     if (this.txuser === w && this.txextra !== null) {
       txbuf.push(this.txextra);
       this.txextra = null;
-      txtimers.push();
       i--;
     }
     this.txuser -= i;
     while (i-- > 0) {
       txbuf.push();
-      txtimers.push();
     }
   }
   if (frame.func === 'REJ') {
     this.txnext = rn;
   }
-};
-
-GbnNode.prototype._checkTimeout = function () {
-  if (this.clock.currentTime - this.txtimers.get(0) > this.txtimeout) {
-    this.txnext = this.txbase;
-  }
-};
-
-GbnNode.prototype._setTimer = function (currentTime, sn, i) {
-  this.txtimers.set(i, currentTime);
 };
 
 

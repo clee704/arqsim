@@ -16,7 +16,6 @@ function Painter() {
     'Protocol',
     'W',
     'a',
-    'Timeout',
     'P',
     'Utilization',
     'Time',
@@ -265,7 +264,6 @@ Painter.prototype._displayValues = function () {
           this.protocol,
           sender.w,
           sender.a,
-          sender.txtimeout,
           system.link1.currentFrameErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
@@ -281,12 +279,12 @@ Painter.prototype._displayValues = function () {
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
-        return (i + 2) * self.lineHeight;
+        return (i + 2.5) * self.lineHeight;
       });
   values.select('.value')
       .text(function (d) { return d; })
       .attr('x', x + 5)
       .attr('y', function (d, i) {
-        return (i + 2) * self.lineHeight;
+        return (i + 2.5) * self.lineHeight;
       });
 };

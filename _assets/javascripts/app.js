@@ -30,7 +30,6 @@ App.prototype._bindListeners = function () {
   var self = this;
   $('#w, #a').change(function () {
     var params = self.getParameters();
-    $('#timeout').val(params.a * 2 + params.w + 1);
     $('#rtt').text(params.a * 2 + 1);
   });
   //$('#framerate').change(function () { self.setFps($(this).val()); });
@@ -104,7 +103,6 @@ App.prototype.getParameters = function () {
     protocol: $('#protocol option:selected').val(),
     w: this._getParameter('#w'),
     a: this._getParameter('#a'),
-    timeout: this._getParameter('#timeout'),
     p: this._getParameter('#p')
   };
 };
