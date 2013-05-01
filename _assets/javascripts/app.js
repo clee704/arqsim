@@ -21,38 +21,6 @@ function App() {
   this._init();
 }
 
-App.prototype._init = function () {
-  this._bindListeners();
-  this._updateDisplays();
-};
-
-App.prototype._bindListeners = function () {
-  var self = this;
-  $('#w, #a').change(function () {
-    var params = self.getParameters();
-    $('#rtt').text(params.a * 2 + 1);
-  });
-  //$('#framerate').change(function () { self.setFps($(this).val()); });
-  $('#simulation-speed-slider').slider({
-    value: 0,
-    min: -50,
-    max: 250,
-    slide: function (e, ui) { self.setSimulationSpeed(ui.value); }
-  });
-  $('#start').click(function () {
-    self.start();
-    return false;
-  });
-  $('#pause').click(function () {
-    self.pause(!self.paused);
-    return false;
-  });
-};
-
-App.prototype._updateDisplays = function () {
-  this.setSimulationSpeed($('#simulation-speed-slider').slider('value'));
-};
-
 App.prototype.start = function () {
   clearTimeout(this.loopTimer);
 
@@ -66,30 +34,6 @@ App.prototype.start = function () {
   this.pause(false);
   $('#pause').show();
   $('#start').text('Start new');
-};
-
-App.prototype._createObjects = function() {
-  var self = this,
-      params = this.getParameters();
-
-  // start the simulation at 1 second before operating
-  this.clock = new Clock(-1, 13);
-  this.clock.addEvent({
-    time: this.clock.dtMin,
-    interval: 1,
-    func: function () { self._operate(); }
-  });
-  if (params.protocol == 'gbn') {
-    this.sender = new GbnNode(params);
-    this.receiver = new GbnNode(params);
-  } else {
-    this.sender = new SrNode(params);
-    this.receiver = new SrNode(params);
-  }
-  this.sender.setName('Sender');
-  this.receiver.setName('Receiver');
-  this.system = new System(params, this.sender, this.receiver);
-  this.system.setClock(this.clock);
 };
 
 App.prototype.pause = function (paused) {
@@ -107,6 +51,71 @@ App.prototype.getParameters = function () {
   };
 };
 
+App.prototype.setFps = function (value) {
+  this.painter.setFps(value);
+};
+
+App.prototype.setSimulationSpeed = function (value) {
+  if (value < $('#simulation-speed-slider').slider('option', 'min') ||
+      value > $('#simulation-speed-slider').slider('option', 'max')) {
+    return;
+  }
+  this.simulationSpeed = Math.pow(10, value / 50);
+  $('#simulation-speed').html(this.simulationSpeed.toFixed(1));
+  $('#simulation-speed-slider').slider('value', value);
+};
+
+App.prototype._init = function () {
+  this._bindListeners();
+  this._updateControls();
+};
+
+App.prototype._bindListeners = function () {
+  var self = this;
+  $('#w, #a').change(function () {
+    var params = self.getParameters();
+    $('#rtt').text(params.a * 2 + 1);
+  });
+  $('#simulation-speed-slider').slider({
+    value: 0,
+    min: -50,
+    max: 250,
+    slide: function (e, ui) { self.setSimulationSpeed(ui.value); }
+  });
+  $('#start').click(function () {
+    self.start();
+    return false;
+  });
+  $('#pause').click(function () {
+    self.pause(!self.paused);
+    return false;
+  });
+};
+
+App.prototype._updateControls = function () {
+  this.setSimulationSpeed($('#simulation-speed-slider').slider('value'));
+};
+
+App.prototype._createObjects = function() {
+  var self = this,
+      params = this.getParameters();
+
+  // Start the simulation at 1 second before operating
+  this.clock = new Clock(-1, 13);
+  this.clock.addEvent({
+    time: this.clock.timeStep,
+    interval: 1,
+    func: function () { self._operate(); }
+  });
+  var NodeClass = params.protocol == 'gbn' ? GbnNode : SrNode;
+  this.system = new System(params, NodeClass, this.clock);
+  this.sender = this.system.node1;
+  this.sender.setName('Sender');
+  this.receiver = this.system.node2;
+  this.receiver.setName('Receiver');
+
+};
+
 App.prototype._getParameter = function (selector) {
   var $elem = $(selector),
       param = Number($elem.val().replace(/[^0-9.]/g, '')),
@@ -118,22 +127,6 @@ App.prototype._getParameter = function (selector) {
   if (param > max) param = max;
   $elem.val(param);
   return param;
-};
-
-App.prototype.setFps = function (value) {
-  //if ($('#framerate option[value=' + value + ']').length == 0) return;
-  this.painter.setFps(value);
-  //$('#framerate').val(value);
-};
-
-App.prototype.setSimulationSpeed = function (value) {
-  if (value < $('#simulation-speed-slider').slider('option', 'min') ||
-      value > $('#simulation-speed-slider').slider('option', 'max')) {
-    return;
-  }
-  this.simulationSpeed = Math.pow(10, value / 50);
-  $('#simulation-speed').html(this.simulationSpeed.toFixed(1));
-  $('#simulation-speed-slider').slider('value', value);
 };
 
 // Call this._tick() this.painter.fps times per second.
@@ -157,18 +150,18 @@ App.prototype._tick = function () {
     alert(ex);
     throw ex;  // brutal way to stop the loop
   }
-  this.painter.drawAll();
+  this.painter.draw();
 };
 
 // Implicitly called by this.clock.advance() in this._tick().
 // It mocks two nodes one sending increasing numbers every second to the other.
 App.prototype._operate = function () {
   this.receivedData = this.receiver.recv();
-  // do something
+  // Do something
   try {
     this.sender.send('#' + this.dataseq);
     this.dataseq++;
   } catch (e) {
-    // sender may throw an error if its buffer is full
+    // Sender may throw an error if its buffer is full
   }
 };

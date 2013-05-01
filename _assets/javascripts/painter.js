@@ -26,6 +26,35 @@ function Painter() {
   this._init();
 }
 
+Painter.prototype.setSystem = function (system) {
+  this.system = system;
+  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
+  $('#display').empty();
+  this.svg = d3.select('#display')
+      .append('div')
+      .classed('svg-container', true)
+      .append('svg')
+      .attr('width', "100%")
+      .attr('height', this.height);
+  this.$svg = $('#display svg');
+  this._updateDimension();
+  this.svg.append('g').classed('data-frames', true);
+  this.svg.append('g').classed('control-frames', true);
+  this.svg.append('g').classed('nodes', true);
+  this.svg.append('g').classed('values', true);
+};
+
+Painter.prototype.setFps = function (fps) {
+  this.fps = fps;
+};
+
+Painter.prototype.draw = function () {
+  this._drawNodes();
+  this._drawPrimaryLink();
+  this._drawSecondaryLink();
+  this._displayValues();
+};
+
 Painter.prototype._init = function () {
   var self = this,
       resizeTimer,
@@ -33,7 +62,7 @@ Painter.prototype._init = function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
           self._updateDimension();
-          self.drawAll();
+          self.draw();
         }, 250);
       };
   $(window).resize(callback);
@@ -119,35 +148,6 @@ Painter.prototype._drawLegend = function () {
     text: 'REJ RN',
     height: defaultHeight / 2
   });
-};
-
-Painter.prototype.setSystem = function (system) {
-  this.system = system;
-  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
-  $('#display').empty();
-  this.svg = d3.select('#display')
-      .append('div')
-      .classed('svg-container', true)
-      .append('svg')
-      .attr('width', "100%")
-      .attr('height', this.height);
-  this.$svg = $('#display svg');
-  this._updateDimension();
-  this.svg.append('g').classed('data-frames', true);
-  this.svg.append('g').classed('control-frames', true);
-  this.svg.append('g').classed('nodes', true);
-  this.svg.append('g').classed('values', true);
-};
-
-Painter.prototype.setFps = function (fps) {
-  this.fps = fps;
-};
-
-Painter.prototype.drawAll = function () {
-  this._drawNodes();
-  this._drawPrimaryLink();
-  this._drawSecondaryLink();
-  this._displayValues();
 };
 
 Painter.prototype._drawNodes = function () {

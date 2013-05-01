@@ -10,10 +10,9 @@ describe('Go-Back-N nodes', function () {
 
     beforeEach(function () {
       clock = new Clock(-1, 10);
-      sender = new GbnNode(params);
-      receiver = new GbnNode(params);
-      system = new System(params, sender, receiver);
-      system.setClock(clock);
+      system = new System(params, GbnNode, clock);
+      sender = system.node1;
+      receiver = system.node2;
     });
 
     it('should work as expected in the simplest case', function () {

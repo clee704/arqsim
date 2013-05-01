@@ -1,37 +1,58 @@
+/**
+ * CircularBuffer with a fixed length. An optional paramter
+ * fillValue is used to fill the initial buffer.
+ */
 function CircularBuffer(length, fillValue) {
+  /** Number of elements this buffer can contain */
   this.length = length;
-  this.base = 0;
-  this.buffer = new Array(length);
-  while (length--) {
-    this.buffer[length] = fillValue;
-  }
+
+  this._base = 0;  // index of the first element
+  this._buffer = new Array(length);  // internal container
+  while (length--) this._buffer[length] = fillValue;
 }
 
-CircularBuffer.prototype.get = function (i) {
+/**
+ * Returns an element at the specified index.
+ */
+CircularBuffer.prototype.get = function (index) {
   var n = this.length;
-  return this.buffer[((i + this.base) % n + n) % n];
+  return this._buffer[((index + this._base) % n + n) % n];
 };
 
-CircularBuffer.prototype.set = function (i, elem) {
+/**
+ * Writes the specified element at the specified index.
+ */
+CircularBuffer.prototype.set = function (index, element) {
   var n = this.length;
-  this.buffer[((i + this.base) % n + n) % n] = elem;
+  this._buffer[((index + this._base) % n + n) % n] = element;
 };
 
-CircularBuffer.prototype.push = function (elem) {
-  var base = this.base,
-      buffer = this.buffer,
+/**
+ * Inserts the specified element at the back and returns
+ * the element at the front.
+ *
+ * Elements are shifted by 1 toward the front. For example,
+ * if the buffer of length 3 is [3, 5, 2] and 8 is pushed,
+ * it returns 3 and the buffer will be then [5, 2, 8].
+ */
+CircularBuffer.prototype.push = function (element) {
+  var base = this._base,
+      buffer = this._buffer,
       ret = buffer[base];
-  buffer[base] = elem;
-  this.base = (base + 1) % this.length;
+  buffer[base] = element;
+  this._base = (base + 1) % this.length;
   return ret;
 };
 
+/**
+ * Returns a string representation of this buffer.
+ */
 CircularBuffer.prototype.toString = function () {
   var temp = [],
-      i,
       n = this.length;
-  for (i = 0; i < n; ++i) {
-    temp.push(this.get(i));
+  for (var i = 0; i < n; ++i) {
+    var element = this.get(i);
+    temp.push(element === undefined ? 'undefined' : element);
   }
-  return temp.join(',');
+  return '[' + temp.join(', ') + ']';
 };
