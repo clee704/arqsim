@@ -112,4 +112,14 @@ describe('Clock', function () {
       expect(mock.foo).toHaveBeenCalled();
     });
   });
+
+  describe('setTime()', function () {
+
+    it('should not allow going backward', function () {
+      clock = new Clock(10);
+      expect(function () {
+        clock.setTime(0);
+      }).toThrow();
+    });
+  });
 });

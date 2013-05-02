@@ -1,10 +1,9 @@
 describe('Heap', function () {
 
-  var identity = function (x) { return x; },
-      heap;
+  var heap;
 
   beforeEach(function () {
-    heap = new Heap(identity);
+    heap = new Heap();
   });
 
   describe('push() and pop()', function () {
