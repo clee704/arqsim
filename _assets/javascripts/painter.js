@@ -20,7 +20,7 @@ function Painter() {
     'Utilization',
     'Time',
     '',
-    'RN min'
+    'RN'
   ];
 
   this._init();
@@ -252,23 +252,24 @@ Painter.prototype._displayValues = function () {
       system = this.system,
       sender = system.node1,
       receiver = system.node2,
+      txlink = system.link1,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
-          sender.txbase % sender.s,
-          (sender.txbase + sender.txbuf.length - 1) % sender.s,
-          sender.txnext % sender.s,
+          sender.txbase,
+          (sender.txbase + sender.w - 1) % sender.s,
+          sender.txnext,
           '',
           this.protocol,
           sender.w,
-          sender.a,
-          system.link1.currentFrameErrorRate().toFixed(6),
+          txlink.a,
+          txlink.currentFrameErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
           '',
-          receiver.rxbase % receiver.s
+          receiver.rxnext % receiver.s
         ]);
   var valuesEnter = values.enter().append('g');
   valuesEnter.append('text')

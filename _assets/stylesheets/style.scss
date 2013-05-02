@@ -206,8 +206,10 @@ text {
       vertical-align: middle;
       border: 0;
     }
-    td.symbol {
+    td.symbol, td.term {
       width: 100px;
+      color: #999;
+      text-align: center;
     }
   }
 }
