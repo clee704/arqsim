@@ -90,7 +90,7 @@ describe('Go-Back-N nodes', function () {
       Math.random.andReturn(1);
       clock.advance(params.a + 1);
       expect(sender.rxlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 1, time: 11},
+        {type: 'S', func: 'RR', rn: 0, time: 11},
         {type: 'S', func: 'REJ', rn: 1, time: 12}
       ]);
     });
@@ -101,7 +101,7 @@ describe('Go-Back-N nodes', function () {
       sender.send(3);  // 1, 13
       clock.setTime(params.a + 3);  // time = 13
       expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 1, time: 11},
+        {type: 'S', func: 'RR', rn: 0, time: 11},
       ]);
     });
 
@@ -121,8 +121,8 @@ describe('Go-Back-N nodes', function () {
       clock.advance(1);  // NAK sent
       expect(receiver.recv()).toEqual([]);
       expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 1, time: 11},
-        {type: 'S', func: 'RR', rn: 2, time: 12},
+        {type: 'S', func: 'RR', rn: 0, time: 11},
+        {type: 'S', func: 'RR', rn: 1, time: 12},
         {type: 'S', func: 'REJ', rn: 2, time: 13}
       ]);
       clock.setTime(2 * params.a + 1);  // the first ACK received
@@ -135,28 +135,6 @@ describe('Go-Back-N nodes', function () {
       expect(sender.txlink.queue).toEqual([
         {type: 'I', data: 5, sn: 4, time: 23},
         {type: 'I', data: 3, sn: 2, time: 24}
-      ]);
-    });
-
-    it('should work if some ACK packets are lost', function () {
-      sender.send(1);
-      sender.send(2);
-      sender.send(3);
-      sender.send(4);
-      clock.setTime(params.a + 1);
-      expect(receiver.recv()).toEqual([1]);
-      clock.advance(1);
-      expect(receiver.recv()).toEqual([2]);
-      clock.advance(1);
-      expect(receiver.recv()).toEqual([3]);
-      clock.advance(1);
-      expect(receiver.recv()).toEqual([4]);
-      sender.rxlink.queue.splice(0, 3); // remove all but the last ACK packet
-      clock.advance(params.a); // last ACK received
-      sender.send(5);
-      clock.advance(1);
-      expect(sender.txlink.queue).toEqual([
-        {type: 'I', data: 5, sn: 4, time: 26}
       ]);
     });
 

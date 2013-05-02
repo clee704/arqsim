@@ -111,12 +111,14 @@ GbnNode.prototype._recvS = function (frame) {
       txbase = this.txbase,
       rn = frame.rn,
       i = (rn - txbase + s) % s;
-  if (i > w) return;  // ignore invalid RN
-  // All frames with sequence number <= rn - 1 are acknowledged.
-  // Remove messages for acknowledged frames from buffer.
-  this.txbase = (txbase + i) % s;
-  this.txuser -= i;
-  while (i-- > 0) txbuf.push();
+  if (rn !== txbase) return;  // ignore invalid RN
+  if (frame.func === 'RR') {
+    // All frames with sequence number <= rn are acknowledged.
+    // Remove messages for acknowledged frames from buffer.
+    this.txbase = (txbase + 1) % s;
+    this.txuser--;
+    txbuf.push();
+  }
   if (frame.func === 'REJ') {
     // Start over the transmission from the frame whose sequence number is rn
     this.txnext = rn;
@@ -137,19 +139,18 @@ GbnNode.prototype._recv = function () {
 };
 
 GbnNode.prototype._recvI = function (frame) {
-  var rxnext = this.rxnext;
+  var sn = frame.sn;
   this.stats.rx = 'discard';
-  if (frame.sn !== rxnext) return;
+  if (sn !== this.rxnext) return;
   if (frame.error) {
     this.stats.rx = 'error';
-    this.txlink.write({type: 'S', func: 'REJ', rn: rxnext});
+    this.txlink.write({type: 'S', func: 'REJ', rn: sn});
   } else if (this.rxbuf === null) {
     this.rxbuf = frame.data;
-    rxnext = (rxnext + 1) % this.s;
-    this.rxnext = rxnext;
+    this.rxnext = (sn + 1) % this.s;
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'RR', rn: rxnext});
+    this.txlink.write({type: 'S', func: 'RR', rn: sn});
   }
 };
 
