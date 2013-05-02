@@ -19,8 +19,6 @@ function Painter() {
     'P',
     'Utilization',
     'Time',
-    '',
-    'RN'
   ];
 
   this._init();
@@ -266,8 +264,6 @@ Painter.prototype._displayValues = function () {
           system.link1.currentBlockErrorRate().toFixed(6),
           receiver.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
-          '',
-          receiver.rxnext % receiver.s
         ]);
   var valuesEnter = values.enter().append('g');
   valuesEnter.append('text')
