@@ -265,7 +265,7 @@ Painter.prototype._displayValues = function () {
           this.protocol,
           sender.w,
           txlink.a,
-          txlink.currentFrameErrorRate().toFixed(6),
+          txlink.currentBlockErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
           '',

@@ -55,14 +55,14 @@ describe('Link', function () {
     });
   });
 
-  describe('currentFrameErrorRate()', function () {
+  describe('currentBlockErrorRate()', function () {
 
     it('should just work', function () {
       link = new Link({a: 1, p: 0}, mockClock);
       link.write({type: 'I', sn: 0, data: 'a'});
-      expect(link.currentFrameErrorRate()).toEqual(0);
+      expect(link.currentBlockErrorRate()).toEqual(0);
       link.write({type: 'I', sn: 1, data: 'b', error: true});
-      expect(link.currentFrameErrorRate()).toEqual(0.5);
+      expect(link.currentBlockErrorRate()).toEqual(0.5);
     });
   });
 });

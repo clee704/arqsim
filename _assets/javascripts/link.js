@@ -3,13 +3,13 @@
  * the characteristics of this link: a and p.
  *
  * a is the propagation time (when packet length is 1).
- * p is the (target) frame error rate. Errors occur in independently and
+ * p is the (target) block error rate. Errors occur in independently and
  * identically distributed manner.
  */
 function Link(params, clock) {
   /** Propagation time */
   this.a = params.a;
-  /** Frame error rate */
+  /** Block error rate */
   this.p = params.p;
   /** Statistics for this link */
   this.stats = {errors: 0, total: 0};
@@ -77,8 +77,8 @@ Link.prototype.read = function () {
 };
 
 /**
- * Returns the actual frame error rate of this link so far.
+ * Returns computed block error rate of this link so far.
  */
-Link.prototype.currentFrameErrorRate = function () {
+Link.prototype.currentBlockErrorRate = function () {
   return this.stats.errors / Math.max(1, this.stats.total);
 };
