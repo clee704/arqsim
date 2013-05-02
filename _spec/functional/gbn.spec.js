@@ -21,7 +21,7 @@ describe('Go-Back-N nodes', function () {
       expect(receiver.recv()).toEqual(['hallo']);
     });
 
-    it('should work when txextra is used', function () {
+    it('should queue w + 1 messages', function () {
       sender.send(1);
       sender.send(2);
       sender.send(3);

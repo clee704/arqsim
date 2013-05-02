@@ -3,13 +3,13 @@
  * the characteristics of this link: a and p.
  *
  * a is the propagation time (when packet length is 1).
- * p is the (target) frame error rate. Errors occur in independently and
+ * p is the (target) block error rate. Errors occur in independently and
  * identically distributed manner.
  */
 function Link(params, clock) {
   /** Propagation time */
   this.a = params.a;
-  /** Frame error rate */
+  /** Block error rate */
   this.p = params.p;
   /** Statistics for this link */
   this.stats = {errors: 0, total: 0};
@@ -42,7 +42,7 @@ Link.prototype.write = function (frame) {
     // Insert the frame in the queue at the right position
     var n = queue.length;
     frame.time = time;
-    if (n === 0 || queue[n - 1].time < time) {
+    if (n == 0 || queue[n - 1].time < time) {
       // Current frame has the largest time value
       queue.push(frame);
     } else {
@@ -70,15 +70,15 @@ Link.prototype.read = function () {
       break;
     }
   }
-  if (i === 0) return;  // No frames are available
+  if (i == 0) return;  // No frames are available
   var ret = queue[i - 1];
   queue.splice(0, i);
   return ret;
 };
 
 /**
- * Returns the actual frame error rate of this link so far.
+ * Returns computed block error rate of this link so far.
  */
-Link.prototype.currentFrameErrorRate = function () {
+Link.prototype.currentBlockErrorRate = function () {
   return this.stats.errors / Math.max(1, this.stats.total);
 };

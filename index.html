@@ -133,19 +133,45 @@
               </tr>
               <tr>
                 <td class='frame symbol'></td>
-                <td>Frame with a sequence number of <i>SN</i></td>
+                <td>Packet with a sequence number of <i>SN</i></td>
               </tr>
               <tr>
                 <td class='frame error symbol'></td>
-                <td>Erroneous frame with a sequence number of <i>SN</i></td>
+                <td>Erroneous packet with a sequence number of <i>SN</i></td>
               </tr>
               <tr>
                 <td class='ack symbol'></td>
-                <td>ACK frame with a request number <i>RN</i></td>
+                <td>
+                  ACK packet with a request number <i>RN</i>.
+                  It acknowledges packets whose sequence number is less
+                  than RN.
+                </td>
               </tr>
               <tr>
                 <td class='nack symbol'></td>
-                <td>NAK frame with a request number <i>RN</i></td>
+                <td>NAK packet with a request number <i>RN</i></td>
+              </tr>
+              <tr>
+                <td class='term'>SN min</td>
+                <td>Sequence number of the first unacknowledged packet</td>
+              </tr>
+              <tr>
+                <td class='term'>SN max</td>
+                <td>
+                  Sequence number of the last packet that can be sent
+                  without further acknowledgement from the receiver
+                </td>
+              </tr>
+              <tr>
+                <td class='term'>SN next</td>
+                <td>Sequence number of the first unsent packet</td>
+              </tr>
+              <tr>
+                <td class='term'>RN</td>
+                <td>
+                  Sequence number of the packet that the receiver
+                  will accept
+                </td>
               </tr>
             </tbody>
           </table>
@@ -158,6 +184,7 @@
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>
   <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js'></script>
+  <script src='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js'></script>
   <script src='http://d3js.org/d3.v3.min.js'></script>
   {% javascript_asset_tag script %}
     - /_assets/library/responsive-containers.min.js

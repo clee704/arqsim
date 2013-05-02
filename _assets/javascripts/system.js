@@ -1,6 +1,6 @@
 function System(params, NodeClass, clock) {
   // params.a = ratio of propagation delay relative to transmission time
-  // params.p = frame error rate
+  // params.p = block error rate
   this.params = params;
   this.link1 = new Link(params, clock);
   this.link2 = new Link(params, clock);
