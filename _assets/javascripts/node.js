@@ -94,13 +94,13 @@ GbnNode.prototype.send = function (message) {
 
 GbnNode.prototype._send = function () {
   var s = this.s,
-      sn = this.txnext,
-      i = (sn - this.txbase + s) % s;
+      txnext = this.txnext,
+      i = (txnext - this.txbase + s) % s;
   if (i < this.txuser && i < this.w) {
     // i < this.txuser: true if there is an unsent message
     // i < this.w: true if the window is not full
-    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
-    this.txnext = (sn + 1) % s;
+    this.txlink.write({type: 'I', sn: txnext, data: this.txbuf.get(i)});
+    this.txnext = (txnext + 1) % s;
   }
 };
 
