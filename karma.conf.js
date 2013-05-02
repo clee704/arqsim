@@ -26,7 +26,9 @@ preprocessors = {
 // list of files to exclude
 exclude = [
   '*.conf.js',
-  '**/main.js'
+  '**/main.js',
+  '**/app.js',
+  '**/painter.js'
 ];
 
 
