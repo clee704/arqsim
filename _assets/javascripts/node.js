@@ -111,13 +111,12 @@ GbnNode.prototype._recvS = function (frame) {
       txbase = this.txbase,
       rn = frame.rn,
       i = (rn - txbase + s) % s;
-  if (i > 0 && i <= w) {
-    // All frames with sequence number <= rn - 1 are acknowledged.
-    // Remove data of acknowledged frames from buffer.
-    this.txbase = (txbase + i) % s;
-    this.txuser -= i;
-    while (i-- > 0) txbuf.push();
-  }
+  if (i > w) return;  // ignore invalid RN
+  // All frames with sequence number <= rn - 1 are acknowledged.
+  // Remove messages for acknowledged frames from buffer.
+  this.txbase = (txbase + i) % s;
+  this.txuser -= i;
+  while (i-- > 0) txbuf.push();
   if (frame.func === 'REJ') {
     // Start over the transmission from the frame whose sequence number is rn
     this.txnext = rn;
