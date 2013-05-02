@@ -140,10 +140,10 @@ GbnNode.prototype._recvI = function (frame) {
       sn = frame.sn;
   stats.rx = 'discard';
   if (sn !== this.rxnext) return;
-  if (frame.error) {
+  if (frame.error || this.rxbuf !== null) {
     stats.rx = 'error';
     this.txlink.write({type: 'S', func: 'NAK', sn: sn});
-  } else if (this.rxbuf === null) {
+  } else {
     stats.rx = 'accept';
     stats.rxiframes++;
     this.rxbuf = frame.msg;
@@ -252,15 +252,18 @@ SrNode.prototype._recv = function () {
 
 SrNode.prototype._recvI = function (frame) {
   var stats = this.stats,
+      w = this.w,
       s = this.s,
       sn = frame.sn,
       i = (sn - this.rxbase + s) % s;
   stats.rx = 'discard';
-  if (i >= this.w) return;  // ignore invalid SN
-  if (frame.error) {
+  if (i > w) return;  // ignore invalid SN
+  // i == w is the case when the user didn't call SrNode#recv and
+  // rxbuf is full
+  if (frame.error || i == w || this.rxbuf.get(i) !== undefined) {
     stats.rx = 'error';
     this.txlink.write({type: 'S', func: 'NAK', sn: sn});
-  } else if (this.rxbuf.get(i) === undefined) {
+  } else {
     stats.rx = 'accept';
     stats.rxiframes++;
     this.rxbuf.set(i, frame.msg);
