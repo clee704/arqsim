@@ -123,17 +123,6 @@ GbnNode.prototype._recvS = function (frame) {
   }
 };
 
-GbnNode.prototype.recv = function () {
-  var message = this.rxbuf;
-  if (message === null) {
-    return [];
-  } else {
-    var ret = [message];
-    this.rxbuf = null;
-    return ret;
-  }
-};
-
 GbnNode.prototype._recv = function () {
   var frame = this.rxlink.read();
   if (!frame) {
@@ -161,5 +150,16 @@ GbnNode.prototype._recvI = function (frame) {
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
     this.txlink.write({type: 'S', func: 'RR', rn: rxnext});
+  }
+};
+
+GbnNode.prototype.recv = function () {
+  var message = this.rxbuf;
+  if (message === null) {
+    return [];
+  } else {
+    var ret = [message];
+    this.rxbuf = null;
+    return ret;
   }
 };
