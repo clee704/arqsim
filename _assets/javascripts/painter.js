@@ -225,7 +225,7 @@ Painter.prototype._drawSecondaryLink = function () {
   framesEnter.append('rect');
   if (h > 3) {
     framesEnter.append('text')
-        .text(function (d) { return d.func + ' ' + d.rn; });
+        .text(function (d) { return d.func + ' ' + d.sn; });
   }
   frames.attr('transform', function (d, i) {
     var dy = (self.height - self.nodeHeight) - (currentTime - d.time) * h * 3;

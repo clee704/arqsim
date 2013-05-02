@@ -109,19 +109,19 @@ GbnNode.prototype._recvS = function (frame) {
       s = this.s,
       txbuf = this.txbuf,
       txbase = this.txbase,
-      rn = frame.rn,
-      i = (rn - txbase + s) % s;
-  if (rn !== txbase) return;  // ignore invalid RN
+      sn = frame.sn,
+      i = (sn - txbase + s) % s;
+  if (sn !== txbase) return;  // ignore invalid SN
   if (frame.func === 'ACK') {
-    // All frames with sequence number <= rn are acknowledged.
+    // All frames with sequence number <= sn are acknowledged.
     // Remove messages for acknowledged frames from buffer.
     this.txbase = (txbase + 1) % s;
     this.txuser--;
     txbuf.push();
   }
   if (frame.func === 'NAK') {
-    // Start over the transmission from the frame whose sequence number is rn
-    this.txnext = rn;
+    // Start over the transmission from the frame whose sequence number is sn
+    this.txnext = sn;
   }
 };
 
@@ -144,13 +144,13 @@ GbnNode.prototype._recvI = function (frame) {
   if (sn !== this.rxnext) return;
   if (frame.error) {
     this.stats.rx = 'error';
-    this.txlink.write({type: 'S', func: 'NAK', rn: sn});
+    this.txlink.write({type: 'S', func: 'NAK', sn: sn});
   } else if (this.rxbuf === null) {
     this.rxbuf = frame.data;
     this.rxnext = (sn + 1) % this.s;
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'ACK', rn: sn});
+    this.txlink.write({type: 'S', func: 'ACK', sn: sn});
   }
 };
 
@@ -217,11 +217,11 @@ SrNode.prototype._recvS = function (frame) {
       txack = this.txack,
       txbase = this.txbase,
       txuser = this.txuser,
-      rn = frame.rn,
-      i = (rn - txbase + s) % s;
-  if (i >= this.w) return;  // ignore invalid RN
+      sn = frame.sn,
+      i = (sn - txbase + s) % s;
+  if (i >= this.w) return;  // ignore invalid SN
   if (frame.func === 'ACK') {
-    // Frame RN is acknowledged.
+    // Frame SN is acknowledged.
     txack.set(i, true);
     // Remove messages for acknowledged frames from buffer.
     while (txack.get(0)) {
@@ -233,8 +233,8 @@ SrNode.prototype._recvS = function (frame) {
     this.txbase = txbase % s;
     this.txuser = txuser;
   } else {  // frame.func == 'NAK'
-    // Start over the transmission from the frame whose sequence number is rn
-    this.txnakd = rn;
+    // Start over the transmission from the frame whose sequence number is sn
+    this.txnakd = sn;
   }
 };
 
@@ -260,12 +260,12 @@ SrNode.prototype._recvI = function (frame) {
   if (i > this.w) return;  // ignore invalid SN
   if (frame.error) {
     stats.rx = 'error';
-    this.txlink.write({type: 'S', func: 'NAK', rn: sn});
+    this.txlink.write({type: 'S', func: 'NAK', sn: sn});
   } else if (this.rxbuf.get(i) === undefined) {
     this.rxbuf.set(i, frame.data);
     stats.rx = 'accept';
     stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'ACK', rn: sn});
+    this.txlink.write({type: 'S', func: 'ACK', sn: sn});
   }
 };
 
