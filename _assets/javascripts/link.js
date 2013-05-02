@@ -11,8 +11,6 @@ function Link(params, clock) {
   this.a = params.a;
   /** Block error rate */
   this.p = params.p;
-  /** Statistics for this link */
-  this.stats = {errors: 0, total: 0};
 
   this.queue = [];
   this.clock = clock;
@@ -30,8 +28,7 @@ function Link(params, clock) {
  * as those may be overwritten.
  */
 Link.prototype.write = function (frame) {
-  var stats = this.stats,
-      time = this.clock.currentTime,
+  var time = this.clock.currentTime,
       queue = this.queue;
   if (frame.type === 'I') {
     frame.time = time + 1;  // +1 for packet length
@@ -53,8 +50,6 @@ Link.prototype.write = function (frame) {
       queue.splice(i + 1, 0, frame);
     }
   }
-  if (frame.error) stats.errors++;
-  stats.total++;
 };
 
 /**
@@ -74,11 +69,4 @@ Link.prototype.read = function () {
   var ret = queue[i - 1];
   queue.splice(0, i);
   return ret;
-};
-
-/**
- * Returns computed block error rate of this link so far.
- */
-Link.prototype.currentBlockErrorRate = function () {
-  return this.stats.errors / Math.max(1, this.stats.total);
 };

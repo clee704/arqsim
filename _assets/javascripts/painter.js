@@ -261,7 +261,7 @@ Painter.prototype._displayValues = function () {
           system.params.protocol,
           system.params.w,
           system.params.a,
-          system.link1.currentBlockErrorRate().toFixed(6),
+          receiver.currentBlockErrorRate().toFixed(6),
           receiver.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
         ]);
