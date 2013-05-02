@@ -3,14 +3,14 @@ describe('Go-Back-N nodes', function () {
   describe('with parameters w = 3, a = 10, p = 0', function () {
 
     var clock,
-        params = {w: 4, a: 10, p: 0},
+        params = {w: 4, a: 10, p: 0, protocol: 'GBN'},
         sender,
         receiver,
         system;
 
     beforeEach(function () {
       clock = new Clock(-1, 10);
-      system = new System(params, GbnNode, clock);
+      system = new System(params, clock);
       sender = system.node1;
       receiver = system.node2;
     });

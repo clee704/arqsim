@@ -28,7 +28,6 @@ function Painter() {
 
 Painter.prototype.setSystem = function (system) {
   this.system = system;
-  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
   $('#display').empty();
   this.svg = d3.select('#display')
       .append('div')
@@ -252,7 +251,6 @@ Painter.prototype._displayValues = function () {
       system = this.system,
       sender = system.node1,
       receiver = system.node2,
-      txlink = system.link1,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
@@ -262,11 +260,11 @@ Painter.prototype._displayValues = function () {
           (sender.txbase + sender.w - 1) % sender.s,
           sender.txnext,
           '',
-          this.protocol,
-          sender.w,
-          txlink.a,
-          txlink.currentBlockErrorRate().toFixed(6),
-          system.node2.currentUtilization().toFixed(6),
+          system.params.protocol,
+          system.params.w,
+          system.params.a,
+          system.link1.currentBlockErrorRate().toFixed(6),
+          receiver.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
           '',
           receiver.rxnext % receiver.s

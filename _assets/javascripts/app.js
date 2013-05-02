@@ -107,8 +107,7 @@ App.prototype._createObjects = function() {
     interval: 1,
     func: function () { self._operate(); }
   });
-  var NodeClass = params.protocol == 'gbn' ? GbnNode : SrNode;
-  this.system = new System(params, NodeClass, this.clock);
+  this.system = new System(params, this.clock);
   this.sender = this.system.node1;
   this.sender.setName('Sender');
   this.receiver = this.system.node2;
