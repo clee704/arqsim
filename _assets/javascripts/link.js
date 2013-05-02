@@ -42,7 +42,7 @@ Link.prototype.write = function (frame) {
     // Insert the frame in the queue at the right position
     var n = queue.length;
     frame.time = time;
-    if (n === 0 || queue[n - 1].time < time) {
+    if (n == 0 || queue[n - 1].time < time) {
       // Current frame has the largest time value
       queue.push(frame);
     } else {
@@ -70,7 +70,7 @@ Link.prototype.read = function () {
       break;
     }
   }
-  if (i === 0) return;  // No frames are available
+  if (i == 0) return;  // No frames are available
   var ret = queue[i - 1];
   queue.splice(0, i);
   return ret;
