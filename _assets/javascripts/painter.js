@@ -16,11 +16,10 @@ function Painter() {
     'Protocol',
     'W',
     'a',
+    '',
     'P',
     'Utilization',
     'Time',
-    '',
-    'RN'
   ];
 
   this._init();
@@ -138,13 +137,13 @@ Painter.prototype._drawLegend = function () {
   createSymbol({
     selector: '#legend .ack',
     classes: ['control-frames'],
-    text: 'RR RN',
+    text: 'ACK SN',
     height: defaultHeight / 2
   });
   createSymbol({
     selector: '#legend .nack',
     classes: ['control-frames'],
-    text: 'REJ RN',
+    text: 'NAK SN',
     height: defaultHeight / 2
   });
 };
@@ -227,7 +226,7 @@ Painter.prototype._drawSecondaryLink = function () {
   framesEnter.append('rect');
   if (h > 3) {
     framesEnter.append('text')
-        .text(function (d) { return d.func + ' ' + d.rn; });
+        .text(function (d) { return d.func + ' ' + d.sn; });
   }
   frames.attr('transform', function (d, i) {
     var dy = (self.height - self.nodeHeight) - (currentTime - d.time) * h * 3;
@@ -249,25 +248,24 @@ Painter.prototype._drawSecondaryLink = function () {
 Painter.prototype._displayValues = function () {
   var self = this,
       system = this.system,
-      sender = system.node1,
+      transmitter = system.node1,
       receiver = system.node2,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
-          sender.txbase,
-          (sender.txbase + sender.w - 1) % sender.s,
-          sender.txnext,
+          transmitter.txbase,
+          (transmitter.txbase + transmitter.w - 1) % transmitter.s,
+          transmitter.txnext,
           '',
           system.params.protocol,
           system.params.w,
           system.params.a,
-          system.link1.currentBlockErrorRate().toFixed(6),
+          '',
+          receiver.currentBlockErrorRate().toFixed(6),
           receiver.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
-          '',
-          receiver.rxnext % receiver.s
         ]);
   var valuesEnter = values.enter().append('g');
   valuesEnter.append('text')

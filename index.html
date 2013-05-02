@@ -21,8 +21,12 @@
       <div class='span12'>
         <form id='controls' class='clearfix' data-squery='min-width:440px=medium min-width:620px=wide'>
           <div class='buttons'>
-            <button accesskey='p' class='btn' id='pause' style='display:none'>Pause</button>
-            <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
+            <button accesskey='p' class='btn' id='pause' style='display:none'>
+              Pause
+            </button>
+            <button accesskey='s' class='btn btn-primary' id='start'>
+              Start
+            </button>
           </div>
           <div class='slider-container'>
             <div class='slider-text'>
@@ -46,7 +50,7 @@
                 <label for='protocol'>Protocol:</label>
                 <select id='protocol' class='input-medium'>
                   <option value='GBN'>Go-Back-N</option>
-                  <option value='SR' disabled>Selective Reject</option>
+                  <option value='SR'>Selective Reject</option>
                 </select>
               </div>
               <div class='param clearfix'>
@@ -94,12 +98,13 @@
         <h2 data-toggle='collapse' data-target='#description'>Description</h2>
         <div id='description' class='collapse in'>
           <p>
-            When a simulation starts, Sender transmits a packet to Receiver every
-            time unit unless its window is full, i.e. there are <var>W</var>
-            unacknowledged packets in its queue.
+            When a simulation starts, the transmitter sends a packet to the
+            receiver every time unit unless its window is full, i.e. there are
+            <var>W</var> unacknowledged packets in the queue.
           </p>
           <p>
-            Following assumptions and simplifications are made in this simulation:
+            Following assumptions and simplifications are made in this
+            simulation:
           </p>
           <ul>
             <li>
@@ -109,13 +114,12 @@
               Errors are independent and identically distributed.
             </li>
             <li>
-              The sequence number of a packet is always determinable
-              even though it has errors.
+              The sequence number of a packet is not corrupted by errors.
             </li>
             <li>
               Processing time is zero. For instance, as soon as the receiver
-              receives a packet, it immediately sends back an ACK or NAK packet.
-              The sender also operates this way.
+              receives a packet, it immediately sends back an ACK or NAK
+              packet. The transmitter also operates this way.
             </li>
             <li>
               ACK and NAK packet lengths are equal to zero and always sent
@@ -137,19 +141,23 @@
               </tr>
               <tr>
                 <td class='frame error symbol'></td>
-                <td>Erroneous packet with a sequence number of <i>SN</i></td>
+                <td>
+                  Erroneous packet with a sequence number of <i>SN</i>
+                </td>
               </tr>
               <tr>
                 <td class='ack symbol'></td>
                 <td>
-                  ACK packet with a request number <i>RN</i>.
-                  It acknowledges packets whose sequence number is less
-                  than RN.
+                  ACK packet acknowledging the packet with a sequence
+                  number <i>SN</i>
                 </td>
               </tr>
               <tr>
                 <td class='nack symbol'></td>
-                <td>NAK packet with a request number <i>RN</i></td>
+                <td>
+                  NAK packet requesting the packet with a sequence
+                  number <i>SN</i>
+                </td>
               </tr>
               <tr>
                 <td class='term'>SN min</td>
@@ -159,19 +167,14 @@
                 <td class='term'>SN max</td>
                 <td>
                   Sequence number of the last packet that can be sent
-                  without further acknowledgement from the receiver
+                  without further acknowledgement from the receiver.
+                  The difference between SN min and SN max is the window
+                  size.
                 </td>
               </tr>
               <tr>
                 <td class='term'>SN next</td>
                 <td>Sequence number of the first unsent packet</td>
-              </tr>
-              <tr>
-                <td class='term'>RN</td>
-                <td>
-                  Sequence number of the packet that the receiver
-                  will accept
-                </td>
               </tr>
             </tbody>
           </table>
@@ -179,7 +182,9 @@
       </div>
     </div>
     <footer>
-      <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
+      <a href='https://github.com/clee704/arqsim'>
+        View source code at GitHub
+      </a>
     </footer>
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>

@@ -1,13 +1,13 @@
 function App() {
   // objects
   this.clock = null;
-  this.sender = null;
+  this.transmitter = null;
   this.receiver = null;
   this.system = null;
 
   // data
-  this.dataseq = null;
-  this.receivedData = null;
+  this.message = null;
+  this.receivedMessages = null;
 
   // app states
   this.started = null;
@@ -25,8 +25,8 @@ App.prototype.start = function () {
   clearTimeout(this.loopTimer);
 
   this._createObjects();
-  this.dataseq = 1;
-  this.receivedData = [];
+  this.message = 1;
+  this.receivedMessages = [];
 
   this.painter.setSystem(this.system);
 
@@ -108,8 +108,8 @@ App.prototype._createObjects = function() {
     func: function () { self._operate(); }
   });
   this.system = new System(params, this.clock);
-  this.sender = this.system.node1;
-  this.sender.setName('Sender');
+  this.transmitter = this.system.node1;
+  this.transmitter.setName('Transmitter');
   this.receiver = this.system.node2;
   this.receiver.setName('Receiver');
 
@@ -155,12 +155,12 @@ App.prototype._tick = function () {
 // Implicitly called by this.clock.advance() in this._tick().
 // It mocks two nodes one sending increasing numbers every second to the other.
 App.prototype._operate = function () {
-  this.receivedData = this.receiver.recv();
+  this.receivedMessages = this.receiver.recv();
   // Do something
   try {
-    this.sender.send('#' + this.dataseq);
-    this.dataseq++;
+    this.transmitter.send(this.message);
+    this.message++;
   } catch (e) {
-    // Sender may throw an error if its buffer is full
+    // Transmitter may throw an error if its buffer is full
   }
 };
