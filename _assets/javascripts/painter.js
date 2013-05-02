@@ -247,16 +247,16 @@ Painter.prototype._drawSecondaryLink = function () {
 Painter.prototype._displayValues = function () {
   var self = this,
       system = this.system,
-      sender = system.node1,
+      transmitter = system.node1,
       receiver = system.node2,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
-          sender.txbase,
-          (sender.txbase + sender.w - 1) % sender.s,
-          sender.txnext,
+          transmitter.txbase,
+          (transmitter.txbase + transmitter.w - 1) % transmitter.s,
+          transmitter.txnext,
           '',
           system.params.protocol,
           system.params.w,

@@ -21,8 +21,12 @@
       <div class='span12'>
         <form id='controls' class='clearfix' data-squery='min-width:440px=medium min-width:620px=wide'>
           <div class='buttons'>
-            <button accesskey='p' class='btn' id='pause' style='display:none'>Pause</button>
-            <button accesskey='s' class='btn btn-primary' id='start'>Start</button>
+            <button accesskey='p' class='btn' id='pause' style='display:none'>
+              Pause
+            </button>
+            <button accesskey='s' class='btn btn-primary' id='start'>
+              Start
+            </button>
           </div>
           <div class='slider-container'>
             <div class='slider-text'>
@@ -94,12 +98,13 @@
         <h2 data-toggle='collapse' data-target='#description'>Description</h2>
         <div id='description' class='collapse in'>
           <p>
-            When a simulation starts, Sender transmits a packet to Receiver every
-            time unit unless its window is full, i.e. there are <var>W</var>
-            unacknowledged packets in its queue.
+            When a simulation starts, the transmitter sends a packet to the
+            receiver every time unit unless its window is full, i.e. there are
+            <var>W</var> unacknowledged packets in the queue.
           </p>
           <p>
-            Following assumptions and simplifications are made in this simulation:
+            Following assumptions and simplifications are made in this
+            simulation:
           </p>
           <ul>
             <li>
@@ -109,13 +114,12 @@
               Errors are independent and identically distributed.
             </li>
             <li>
-              The sequence number of a packet is always determinable
-              even though it has errors.
+              The sequence number of a packet is not corrupted by errors.
             </li>
             <li>
               Processing time is zero. For instance, as soon as the receiver
-              receives a packet, it immediately sends back an ACK or NAK packet.
-              The sender also operates this way.
+              receives a packet, it immediately sends back an ACK or NAK
+              packet. The transmitter also operates this way.
             </li>
             <li>
               ACK and NAK packet lengths are equal to zero and always sent
@@ -145,7 +149,7 @@
                 <td class='ack symbol'></td>
                 <td>
                   ACK packet acknowledging the packet with a sequence
-                  number <i>SN</i>.
+                  number <i>SN</i>
                 </td>
               </tr>
               <tr>
@@ -178,7 +182,9 @@
       </div>
     </div>
     <footer>
-      <a href='https://github.com/clee704/arqsim'>View source code at GitHub</a>
+      <a href='https://github.com/clee704/arqsim'>
+        View source code at GitHub
+      </a>
     </footer>
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>

@@ -75,16 +75,15 @@ function GbnNode(params, clock, txlink, rxlink) {
   this.txbase = 0;  // sequence number of the first unacknowledged frame
   this.txnext = 0;  // sequence number of the first unsent frame
   this.txuser = 0;  // index of the first available slot in txbuf
-  this.rxnext = 0;  // sequence number of the next frame to receive
   this.rxbuf = null;
+  this.rxnext = 0;  // sequence number of the next frame to receive
 }
 GbnNode.prototype = Object.create(Node.prototype);
 GbnNode.prototype.constructor = GbnNode;
 
 GbnNode.prototype.send = function (message) {
-  var w = this.w,
-      txuser = this.txuser;
-  if (txuser >= w + 1) {
+  var txuser = this.txuser;
+  if (txuser >= this.w + 1) {
     throw 'buffer full';
   } else {
     this.txbuf.set(txuser, message);
@@ -99,27 +98,25 @@ GbnNode.prototype._send = function () {
   if (i < this.txuser && i < this.w) {
     // i < this.txuser: true if there is an unsent message
     // i < this.w: true if the window is not full
-    this.txlink.write({type: 'I', sn: txnext, data: this.txbuf.get(i)});
+    this.txlink.write({type: 'I', sn: txnext, msg: this.txbuf.get(i)});
     this.txnext = (txnext + 1) % s;
   }
 };
 
 GbnNode.prototype._recvS = function (frame) {
-  var w = this.w,
-      s = this.s,
+  var s = this.s,
       txbuf = this.txbuf,
       txbase = this.txbase,
       sn = frame.sn,
       i = (sn - txbase + s) % s;
   if (sn !== txbase) return;  // ignore invalid SN
   if (frame.func === 'ACK') {
-    // All frames with sequence number <= sn are acknowledged.
-    // Remove messages for acknowledged frames from buffer.
+    // Frame SN is acknowledged.
+    // Remove the message for the acknowledged frame from buffer.
     this.txbase = (txbase + 1) % s;
     this.txuser--;
     txbuf.push();
-  }
-  if (frame.func === 'NAK') {
+  } else {  // frame.func == 'NAK'
     // Start over the transmission from the frame whose sequence number is sn
     this.txnext = sn;
   }
@@ -139,17 +136,18 @@ GbnNode.prototype._recv = function () {
 };
 
 GbnNode.prototype._recvI = function (frame) {
-  var sn = frame.sn;
-  this.stats.rx = 'discard';
+  var stats = this.stats,
+      sn = frame.sn;
+  stats.rx = 'discard';
   if (sn !== this.rxnext) return;
   if (frame.error) {
-    this.stats.rx = 'error';
+    stats.rx = 'error';
     this.txlink.write({type: 'S', func: 'NAK', sn: sn});
   } else if (this.rxbuf === null) {
-    this.rxbuf = frame.data;
+    stats.rx = 'accept';
+    stats.rxiframes++;
+    this.rxbuf = frame.msg;
     this.rxnext = (sn + 1) % this.s;
-    this.stats.rx = 'accept';
-    this.stats.rxiframes++;
     this.txlink.write({type: 'S', func: 'ACK', sn: sn});
   }
 };
@@ -174,11 +172,11 @@ function SrNode(params, clock, txlink, rxlink) {
   // acknowledgement status flags
   this.txack = new CircularBuffer(params.w);
   this.txbase = 0;  // sequence number of the first unacknowledged frame
-  this.txnext = 0;  // sequence number of the first unsent frame
   this.txnakd = null;  // sequence number of the frame to be resent
+  this.txnext = 0;  // sequence number of the first unsent frame
   this.txuser = 0;  // index of the first available slot in txbuf
-  this.rxbase = 0;  // sequence number of the first NAKed frame
   this.rxbuf = new CircularBuffer(params.w);
+  this.rxbase = 0;  // sequence number of the first NAKed frame
 }
 SrNode.prototype = Object.create(Node.prototype);
 SrNode.prototype.constructor = SrNode;
@@ -194,19 +192,20 @@ SrNode.prototype.send = function (message) {
 };
 
 SrNode.prototype._send = function () {
-  var txnext = this.txnext,
+  var s = this.s,
       txnakd = this.txnakd,
+      txnext = this.txnext,
       resending = txnakd !== null,
       sn = resending ? txnakd : txnext,
-      i = (sn - this.txbase + this.s) % this.s;
+      i = (sn - this.txbase + s) % s;
   if (i < this.txuser && i < this.w) {
     // i < this.txuser: true if there is an unsent message
     // i < this.w: true if the window is not full
-    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
+    this.txlink.write({type: 'I', sn: sn, msg: this.txbuf.get(i)});
     if (resending) {
       this.txnakd = null;
     } else {
-      this.txnext = (txnext + 1) % this.s;
+      this.txnext = (txnext + 1) % s;
     }
   }
 };
@@ -223,7 +222,7 @@ SrNode.prototype._recvS = function (frame) {
   if (frame.func === 'ACK') {
     // Frame SN is acknowledged.
     txack.set(i, true);
-    // Remove messages for acknowledged frames from buffer.
+    // Remove the messages for the acknowledged frames from buffer.
     while (txack.get(0)) {
       txbase++;
       txuser--;
@@ -233,7 +232,7 @@ SrNode.prototype._recvS = function (frame) {
     this.txbase = txbase % s;
     this.txuser = txuser;
   } else {  // frame.func == 'NAK'
-    // Start over the transmission from the frame whose sequence number is sn
+    // Resend the frame whose sequence number is sn
     this.txnakd = sn;
   }
 };
@@ -257,14 +256,14 @@ SrNode.prototype._recvI = function (frame) {
       sn = frame.sn,
       i = (sn - this.rxbase + s) % s;
   stats.rx = 'discard';
-  if (i > this.w) return;  // ignore invalid SN
+  if (i >= this.w) return;  // ignore invalid SN
   if (frame.error) {
     stats.rx = 'error';
     this.txlink.write({type: 'S', func: 'NAK', sn: sn});
   } else if (this.rxbuf.get(i) === undefined) {
-    this.rxbuf.set(i, frame.data);
     stats.rx = 'accept';
     stats.rxiframes++;
+    this.rxbuf.set(i, frame.msg);
     this.txlink.write({type: 'S', func: 'ACK', sn: sn});
   }
 };
