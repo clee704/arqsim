@@ -71,16 +71,6 @@
               </div>
               <div class='param clearfix'>
                 <div class='label-and-input'>
-                  <label for='timeout'>timeout =</label>
-                  <input id='timeout' max='10000' min='1' type='number' value='14' data-round='1' class='input-small'>
-                </div>
-                <div class='help-block'>
-                  Sender retransmits the first unacknowledged packet if it doesn't
-                  receive ACK in a given timeout period.
-                </div>
-              </div>
-              <div class='param clearfix'>
-                <div class='label-and-input'>
                   <label class='control-label' for='p'><var>P</var> =</label>
                   <input id='p' max='1' min='0' step='any' type='number' value='0.05' class='input-small'>
                 </div>
@@ -116,7 +106,11 @@
               Packet length is constant and equal to one time unit.
             </li>
             <li>
-              Errors in a packet are independent from errors in previous packets.
+              Errors are independent and identically distributed.
+            </li>
+            <li>
+              The sequence number of a packet is always determinable
+              even though it has errors.
             </li>
             <li>
               Processing time is zero. For instance, as soon as the receiver
@@ -164,7 +158,6 @@
   </div>
   <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script>
   <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js'></script>
-  <script src='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js'></script>
   <script src='http://d3js.org/d3.v3.min.js'></script>
   {% javascript_asset_tag script %}
     - /_assets/library/responsive-containers.min.js

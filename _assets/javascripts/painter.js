@@ -12,12 +12,10 @@ function Painter() {
     'SN min',
     'SN max',
     'SN next',
-    'Timer',
     '',
     'Protocol',
     'W',
     'a',
-    'Timeout',
     'P',
     'Utilization',
     'Time',
@@ -28,6 +26,35 @@ function Painter() {
   this._init();
 }
 
+Painter.prototype.setSystem = function (system) {
+  this.system = system;
+  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
+  $('#display').empty();
+  this.svg = d3.select('#display')
+      .append('div')
+      .classed('svg-container', true)
+      .append('svg')
+      .attr('width', "100%")
+      .attr('height', this.height);
+  this.$svg = $('#display svg');
+  this._updateDimension();
+  this.svg.append('g').classed('data-frames', true);
+  this.svg.append('g').classed('control-frames', true);
+  this.svg.append('g').classed('nodes', true);
+  this.svg.append('g').classed('values', true);
+};
+
+Painter.prototype.setFps = function (fps) {
+  this.fps = fps;
+};
+
+Painter.prototype.draw = function () {
+  this._drawNodes();
+  this._drawPrimaryLink();
+  this._drawSecondaryLink();
+  this._displayValues();
+};
+
 Painter.prototype._init = function () {
   var self = this,
       resizeTimer,
@@ -35,7 +62,7 @@ Painter.prototype._init = function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
           self._updateDimension();
-          self.drawAll();
+          self.draw();
         }, 250);
       };
   $(window).resize(callback);
@@ -121,35 +148,6 @@ Painter.prototype._drawLegend = function () {
     text: 'REJ RN',
     height: defaultHeight / 2
   });
-};
-
-Painter.prototype.setSystem = function (system) {
-  this.system = system;
-  this.protocol = this.system.node1.constructor == GbnNode ? 'GBN' : 'SR';
-  $('#display').empty();
-  this.svg = d3.select('#display')
-      .append('div')
-      .classed('svg-container', true)
-      .append('svg')
-      .attr('width', "100%")
-      .attr('height', this.height);
-  this.$svg = $('#display svg');
-  this._updateDimension();
-  this.svg.append('g').classed('data-frames', true);
-  this.svg.append('g').classed('control-frames', true);
-  this.svg.append('g').classed('nodes', true);
-  this.svg.append('g').classed('values', true);
-};
-
-Painter.prototype.setFps = function (fps) {
-  this.fps = fps;
-};
-
-Painter.prototype.drawAll = function () {
-  this._drawNodes();
-  this._drawPrimaryLink();
-  this._drawSecondaryLink();
-  this._displayValues();
 };
 
 Painter.prototype._drawNodes = function () {
@@ -255,19 +253,17 @@ Painter.prototype._displayValues = function () {
       sender = system.node1,
       receiver = system.node2,
       currentTime = system.clock.currentTime,
-      x = this.width * 6 / 13 + (this.margin + this.nodeWidth) * 7 / 13,
+      x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
       values = this.svg.select('.values')
         .selectAll('g')
         .data([
           sender.txbase % sender.s,
           (sender.txbase + sender.txbuf.length - 1) % sender.s,
           sender.txnext % sender.s,
-          Math.floor(currentTime - sender.txtimers.get(0)),
           '',
           this.protocol,
           sender.w,
           sender.a,
-          sender.txtimeout,
           system.link1.currentFrameErrorRate().toFixed(6),
           system.node2.currentUtilization().toFixed(6),
           currentTime.toPrecision(3),
@@ -283,12 +279,12 @@ Painter.prototype._displayValues = function () {
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
-        return (i + 1.5) * self.lineHeight;
+        return (i + 2.5) * self.lineHeight;
       });
   values.select('.value')
       .text(function (d) { return d; })
       .attr('x', x + 5)
       .attr('y', function (d, i) {
-        return (i + 1.5) * self.lineHeight;
+        return (i + 2.5) * self.lineHeight;
       });
 };

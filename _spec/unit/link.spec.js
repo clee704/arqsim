@@ -10,8 +10,7 @@ describe('Link', function () {
   describe('write() and read()', function () {
 
     it('should work with a single element', function () {
-      link = new Link({a: 10, p: 0});
-      link.setClock(mockClock);
+      link = new Link({a: 10, p: 0}, mockClock);
       link.write({type: 'I', data: 'foo'});
       expect(link.read()).toBeUndefined();
       mockClock.currentTime = 10.9;
@@ -22,8 +21,7 @@ describe('Link', function () {
     });
 
     it('should work with a few elements', function () {
-      link = new Link({a: 1, p: 0});
-      link.setClock(mockClock);
+      link = new Link({a: 1, p: 0}, mockClock);
       link.write({type: 'I', sn: 0, data: 'z0F'});
       mockClock.currentTime = 0.2;
       link.write({type: 'I', sn: 1, data: 'R93'});
@@ -47,8 +45,7 @@ describe('Link', function () {
   describe('read()', function () {
 
     it('should discard all but the last element in the queue', function () {
-      link = new Link({a: 3, p: 0});
-      link.setClock(mockClock);
+      link = new Link({a: 3, p: 0}, mockClock);
       link.write({type: 'I', sn: 0, data: 'aaa'});
       mockClock.currentTime = 1;
       link.write({type: 'I', sn: 1, data: 'bbb'});

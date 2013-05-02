@@ -1,34 +1,50 @@
-function Node(params) {
-  if (params === undefined) params = {};
-  this.w = params.w;  // window size
-  this.a = params.a;  // ratio of propagation delay relative to transmission time
-  this.txbuf = new CircularBuffer(params.w);
-  this.txextra = null;  // extra buffer
-  this.txbase = 0;
-  this.txnext = 0;  // sequence number of the first unsent frame
-  this.txuser = 0;  // index of the first available slot in txbuf
-  this.rxbase = 0;
-  this.rxuser = 0;  // index + 1 of the last received frame in rxbuf
+function Node(params, clock, txlink, rxlink) {
+  /** Window size */
+  this.w = params.w;
   this.stats = {rx: 'ready', rxiframes: 0};
   this.name = null;
 
-  // follwing variables must be set before using this instance
-  this.clock = null;
-  this.txlink = null;
-  this.rxlink = null;
+  this.clock = clock;
+  this.txlink = txlink;
+  this.rxlink = rxlink;
 
-  // following variables must be defined in a subclass
-  this.s = null;  // # of sequence numbers
-  this.txtimers = null;
-  this.rxbuf = null;
-
-  // following methods must be implemented in a subclass
-  // _recvI, _recvS, _checkTimeout, _setTimer
+  this._init();
 }
 
-Node.prototype.setClock = function (clock) {
+/**
+ * Writes data to the transmission link. data should be string or number.
+ */
+Node.prototype.send = function (data) {
+  throw 'not implemented';
+};
+
+/**
+ * Reads data from the reception link and returns them as an array.
+ *
+ * If you don't read data from a node, the reception queue may become
+ * full and then the node cannot accept new data from the other node.
+ */
+Node.prototype.recv = function () {
+  throw 'not implemented';
+};
+
+/**
+ * Sets the name of this node.
+ */
+Node.prototype.setName = function (name) {
+  this.name = name;
+};
+
+/**
+ * Returns the utilization as seen by a receiver.
+ */
+Node.prototype.currentUtilization = function () {
+  return this.stats.rxiframes /
+      Math.max(1, Math.floor(this.clock.currentTime - this.rxlink.a));
+};
+
+Node.prototype._init = function () {
   var self = this;
-  this.clock = clock;
   this.clock.addEvent({
     time: 1,
     interval: 1,
@@ -36,57 +52,89 @@ Node.prototype.setClock = function (clock) {
   });
 };
 
-Node.prototype.setLinks = function (txlink, rxlink) {
-  this.txlink = txlink;
-  this.rxlink = rxlink;
-};
-
-Node.prototype.setName = function (name) {
-  this.name = name;
-};
-
-Node.prototype.send = function (data) {
-  var w = this.w,
-      i = this.txuser;
-  if (i === w && this.txextra !== null) throw 'buffer full';
-  if (!this.txlink) {
-    throw 'link not connected';
-  }
-  if (i < w) {
-    this.txbuf.set(i, data);
-    this.txuser++;
-  } else {
-    this.txextra = data;
-  }
-};
-
-Node.prototype.recv = function () {
-  var rxbuf = this.rxbuf,
-      rxbase = this.rxbase,
-      rxuser = this.rxuser,
-      data = [];
-  while (rxbuf.get(0) !== undefined) {
-    data.push(rxbuf.push());
-    rxbase++;
-    rxuser--;
-  }
-  this.rxbase = rxbase % this.s;
-  this.rxuser = rxuser;
-  return data;
-};
-
-Node.prototype.currentUtilization = function () {
-  return this.stats.rxiframes /
-      Math.max(1, Math.floor(this.clock.currentTime - this.a));
-};
-
 Node.prototype._operate = function () {
-  this._checkTimeout();
   this._recv();
   this._send();
 };
 
 Node.prototype._recv = function () {
+  throw 'not implemented';
+};
+
+Node.prototype._send = function () {
+  throw 'not implemented';
+};
+
+
+function GbnNode(params, clock, txlink, rxlink) {
+  Node.call(this, params, clock, txlink, rxlink);
+  // maximum sequence number
+  this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
+  this.txbuf = new CircularBuffer(params.w + 1);
+  this.txbase = 0;  // sequence number of the first unacknowledged frame
+  this.txnext = 0;  // sequence number of the first unsent frame
+  this.txuser = 0;  // index of the first available slot in txbuf
+  this.rxnext = 0;  // sequence number of the next frame to receive
+  this.rxbuf = null;
+}
+GbnNode.prototype = Object.create(Node.prototype);
+GbnNode.prototype.constructor = GbnNode;
+
+GbnNode.prototype.send = function (data) {
+  var w = this.w,
+      txuser = this.txuser;
+  if (txuser >= w + 1) {
+    throw 'buffer full';
+  } else {
+    this.txbuf.set(txuser, data);
+    this.txuser++;
+  }
+};
+
+GbnNode.prototype._send = function () {
+  var s = this.s,
+      sn = this.txnext,
+      i = (sn - this.txbase + s) % s;
+  if (i < this.txuser && i < this.w) {
+    // i < this.txuser: true if there is an unsent data
+    // i < this.w: true if the window is not full
+    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
+    this.txnext = (sn + 1) % s;
+  }
+};
+
+GbnNode.prototype._recvS = function (frame) {
+  var w = this.w,
+      s = this.s,
+      txbuf = this.txbuf,
+      txbase = this.txbase,
+      rn = frame.rn,
+      i = (rn - txbase + s) % s;
+  if (i > 0 && i <= w) {
+    // All frames with sequence number <= rn - 1 are acknowledged.
+    // Remove data of acknowledged frames from buffer.
+    this.txbase = (txbase + i) % s;
+    this.txuser -= i;
+    while (i-- > 0) txbuf.push();
+  }
+  if (frame.func === 'REJ') {
+    // Start over the transmission from the frame whose sequence number is rn
+    this.txnext = rn;
+  }
+};
+
+GbnNode.prototype.recv = function () {
+  var data = this.rxbuf;
+  if (data === null) {
+    return [];
+  } else {
+    var ret = [data];
+    this.rxbuf = null;
+    return ret;
+  }
+};
+
+GbnNode.prototype._recv = function () {
   var frame = this.rxlink.read();
   if (!frame) {
     this.stats.rx = 'ready';
@@ -99,152 +147,19 @@ Node.prototype._recv = function () {
   }
 };
 
-Node.prototype._send = function () {
-  var s = this.s,
-      sn = this.txnext,
-      i = (sn - this.txbase + s) % s;
-  if (i < this.txuser) {
-    this.txlink.write({type: 'I', sn: sn, data: this.txbuf.get(i)});
-    this.txnext = (sn + 1) % s;
-    this._setTimer(this.clock.currentTime, sn, i);
-  }
-};
-
-
-function GbnNode(params) {
-  Node.call(this, params);
-  // # of sequence numbers
-  this.s = 1 << Math.ceil(Math.log(params.w + 1) / Math.log(2));
-  this.txtimers = new CircularBuffer(params.w);
-  this.txtimeout = params.timeout;
-  this.rxbuf = new CircularBuffer(1);  // dummy
-  this.rxrejd = false;  // needed to send REJ only once per go-back
-}
-GbnNode.prototype = new Node;
-GbnNode.prototype.constructor = GbnNode;
-
 GbnNode.prototype._recvI = function (frame) {
-  var s = this.s,
-      rxbuf = this.rxbuf,
-      rxbase = this.rxbase,
-      rxuser = this.rxuser,
-      i = (frame.sn - rxbase + s) % s;
+  var rxnext = this.rxnext;
   this.stats.rx = 'discard';
+  if (frame.sn !== rxnext) return;
   if (frame.error) {
-    if (!this.rxrejd) {
-      this.stats.rx = 'error';
-      this.rxrejd = true;
-      this.txlink.write({type: 'S', func: 'REJ', rn: (rxbase + rxuser) % s});
-    }
-  } else if (i === rxuser && rxbuf.get(i) === undefined) {
-    rxbuf.set(i, frame.data);
-    rxuser++;
-    this.rxuser = rxuser;
-    this.rxrejd = false;
+    this.stats.rx = 'error';
+    this.txlink.write({type: 'S', func: 'REJ', rn: rxnext});
+  } else if (this.rxbuf === null) {
+    this.rxbuf = frame.data;
+    rxnext = (rxnext + 1) % this.s;
+    this.rxnext = rxnext;
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'RR', rn: (rxbase + rxuser) % s});
+    this.txlink.write({type: 'S', func: 'RR', rn: rxnext});
   }
 };
-
-GbnNode.prototype._recvS = function (frame) {
-  var w = this.w,
-      s = this.s,
-      txbuf = this.txbuf,
-      txbase = this.txbase,
-      txtimers = this.txtimers,
-      rn = frame.rn,
-      i = (rn - txbase + s) % s,
-      j = (this.txnext - txbase + s) % s;
-  if (i > j) return;  // timed out
-  if (i > 0 && i <= w) {
-    this.txbase = (txbase + i) % s;
-    if (this.txuser === w && this.txextra !== null) {
-      txbuf.push(this.txextra);
-      this.txextra = null;
-      txtimers.push();
-      i--;
-    }
-    this.txuser -= i;
-    while (i-- > 0) {
-      txbuf.push();
-      txtimers.push();
-    }
-  }
-  if (frame.func === 'REJ') {
-    this.txnext = rn;
-  }
-};
-
-GbnNode.prototype._checkTimeout = function () {
-  if (this.clock.currentTime - this.txtimers.get(0) > this.txtimeout) {
-    this.txnext = this.txbase;
-  }
-};
-
-GbnNode.prototype._setTimer = function (currentTime, sn, i) {
-  this.txtimers.set(i, currentTime);
-};
-
-
-/*function SrNode(w, a) {
-  Node.call(this, w, a);
-  this.s = 1 << Math.ceil(Math.log(w * 2) / Math.log(2)); // # of sequence numbers
-  this.rxbuf = new CircularBuffer(w);
-  this.rxlast = -1; // index of the last received frame in rxbuf
-  this.rxrejd = false; // needed to send REJ only once per go-back
-}
-SrNode.prototype = new Node;
-SrNode.prototype.constructor = SrNode;
-
-SrNode.prototype._recvI = function (frame) {
-  var s = this.s,
-      rxbuf = this.rxbuf,
-      rxbase = this.rxbase,
-      rxuser = this.rxuser,
-      i = (frame.sn - rxbase + s) % s;
-  if (i === rxuser && rxbuf.get(i) === undefined) {
-    rxbuf.set(i, frame.data);
-    rxuser++;
-    this.rxuser = rxuser;
-    this.rxrejd = false;
-    this.stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'RR', rn: (rxbase + rxuser) % s});
-  } else if (i < this.w && !this.rxrejd) {
-    this.rxrejd = true;
-    this.txlink.write({type: 'S', func: 'REJ', rn: (rxbase + rxuser) % s});
-  }
-};
-
-SrNode.prototype._recvS = function (frame) {
-  var w = this.w,
-      s = this.s,
-      txbuf = this.txbuf,
-      txbase = this.txbase,
-      rn = frame.rn,
-      i = (rn - txbase + s) % s,
-      j = (this.txnext - txbase + s) % s;
-  if (i > 0 && i <= w) {
-    this.txbase = (txbase + i) % s;
-    if (this.txuser === w) {
-      txbuf.push(this.txextra);
-      this.txextra = null;
-      i--;
-    }
-    this.txuser -= i;
-    while (i-- > 0) {
-      txbuf.push();
-    }
-  }
-  if (frame.func === 'REJ' && i < j) {
-    this.txnext = rn;
-  }
-};
-
-SrNode.prototype._checkTimeout = function () {
-  // todo
-};
-
-SrNode.prototype._setTimer = function (currentTime, sn, i) {
-  // todo
-};*/

@@ -46,10 +46,10 @@ describe('Clock', function () {
 
     it('should throw an error if maximum time reached', function () {
       expect(function () {
-        clock.advance(Math.pow(2, 43) - 1.1);
+        clock.advance(Math.pow(2, 43) - 0.01);
       }).not.toThrow();
       expect(function () {
-        clock.advance(0.1);
+        clock.advance(0.01);
       }).toThrow();
     });
   });

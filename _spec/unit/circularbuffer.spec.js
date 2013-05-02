@@ -91,7 +91,7 @@ describe('CircularBuffer', function () {
 
     it('should work as expected when empty', function () {
       buffer = new CircularBuffer(3);
-      expect(buffer.toString()).toEqual(',,');
+      expect(buffer.toString()).toEqual('[undefined, undefined, undefined]');
     });
 
     it('should work as expected when filled', function () {
@@ -101,7 +101,7 @@ describe('CircularBuffer', function () {
       buffer.push(4);
       buffer.push(1);
       buffer.push(5);
-      expect(buffer.toString()).toEqual('4,1,5');
+      expect(buffer.toString()).toEqual('[4, 1, 5]');
     });
   });
 });

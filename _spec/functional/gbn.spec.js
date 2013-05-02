@@ -3,17 +3,16 @@ describe('Go-Back-N nodes', function () {
   describe('with parameters w = 3, a = 10, p = 0', function () {
 
     var clock,
-        params = {w: 4, a: 10, timeout: 22, p: 0},
+        params = {w: 4, a: 10, p: 0},
         sender,
         receiver,
         system;
 
     beforeEach(function () {
       clock = new Clock(-1, 10);
-      sender = new GbnNode(params);
-      receiver = new GbnNode(params);
-      system = new System(params, sender, receiver);
-      system.setClock(clock);
+      system = new System(params, GbnNode, clock);
+      sender = system.node1;
+      receiver = system.node2;
     });
 
     it('should work as expected in the simplest case', function () {
@@ -107,7 +106,6 @@ describe('Go-Back-N nodes', function () {
     });
 
     it('should work as expected in a more complex case', function () {
-      sender.txtimeout = 100;  // effectively disable timeout
       sender.send(1);
       sender.send(2);
       clock.setTime(1);  // frames #1, #2 have been sent
@@ -140,21 +138,7 @@ describe('Go-Back-N nodes', function () {
       ]);
     });
 
-    it('should detect timeout', function () {
-      sender.send(1);
-      spyOn(Math, 'random').andReturn(-1);  // make errors
-      clock.setTime(0);  // an errorneous frame is sent
-      Math.random.andReturn(1);
-      clock.setTime(params.a + 1);
-      receiver.txlink.queue.length = 0;  // destroy NAK
-      clock.setTime(sender.txtimeout + 1);
-      expect(sender.txlink.queue).toEqual([
-        {type: 'I', data: 1, sn: 0, time: sender.txtimeout + 2}
-      ]);
-    });
-
     it('should work if some ACK packets are lost', function () {
-      sender.txtimeout = 100;
       sender.send(1);
       sender.send(2);
       sender.send(3);
