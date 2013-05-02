@@ -63,7 +63,7 @@ describe('Go-Back-N nodes', function () {
       expect(receiver.recv()).toEqual([]);
     });
 
-    it('should send one REJ per error', function () {
+    it('should send one NAK per error', function () {
       var data = 1;
       clock.addEvent({
         time: 0,
@@ -90,8 +90,8 @@ describe('Go-Back-N nodes', function () {
       Math.random.andReturn(1);
       clock.advance(params.a + 1);
       expect(sender.rxlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 0, time: 11},
-        {type: 'S', func: 'REJ', rn: 1, time: 12}
+        {type: 'S', func: 'ACK', rn: 0, time: 11},
+        {type: 'S', func: 'NAK', rn: 1, time: 12}
       ]);
     });
 
@@ -101,7 +101,7 @@ describe('Go-Back-N nodes', function () {
       sender.send(3);  // 1, 13
       clock.setTime(params.a + 3);  // time = 13
       expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 0, time: 11},
+        {type: 'S', func: 'ACK', rn: 0, time: 11},
       ]);
     });
 
@@ -121,9 +121,9 @@ describe('Go-Back-N nodes', function () {
       clock.advance(1);  // NAK sent
       expect(receiver.recv()).toEqual([]);
       expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'RR', rn: 0, time: 11},
-        {type: 'S', func: 'RR', rn: 1, time: 12},
-        {type: 'S', func: 'REJ', rn: 2, time: 13}
+        {type: 'S', func: 'ACK', rn: 0, time: 11},
+        {type: 'S', func: 'ACK', rn: 1, time: 12},
+        {type: 'S', func: 'NAK', rn: 2, time: 13}
       ]);
       clock.setTime(2 * params.a + 1);  // the first ACK received
       sender.send(5);

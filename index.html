@@ -137,18 +137,23 @@
               </tr>
               <tr>
                 <td class='frame error symbol'></td>
-                <td>Erroneous packet with a sequence number of <i>SN</i></td>
+                <td>
+                  Erroneous packet with a sequence number of <i>SN</i>
+                </td>
               </tr>
               <tr>
                 <td class='ack symbol'></td>
                 <td>
-                  ACK packet with a sequence number <i>SN</i>.
-                  It acknowledges the packet with sequence number SN.
+                  ACK packet acknowledging the packet with a sequence
+                  number <i>SN</i>.
                 </td>
               </tr>
               <tr>
                 <td class='nack symbol'></td>
-                <td>NAK packet with a request number <i>RN</i></td>
+                <td>
+                  NAK packet requesting the packet with a sequence
+                  number <i>SN</i>
+                </td>
               </tr>
               <tr>
                 <td class='term'>SN min</td>
@@ -158,7 +163,9 @@
                 <td class='term'>SN max</td>
                 <td>
                   Sequence number of the last packet that can be sent
-                  without further acknowledgement from the receiver
+                  without further acknowledgement from the receiver.
+                  The difference between SN min and SN max is the window
+                  size.
                 </td>
               </tr>
               <tr>

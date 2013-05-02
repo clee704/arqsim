@@ -136,13 +136,13 @@ Painter.prototype._drawLegend = function () {
   createSymbol({
     selector: '#legend .ack',
     classes: ['control-frames'],
-    text: 'RR RN',
+    text: 'ACK SN',
     height: defaultHeight / 2
   });
   createSymbol({
     selector: '#legend .nack',
     classes: ['control-frames'],
-    text: 'REJ RN',
+    text: 'NAK SN',
     height: defaultHeight / 2
   });
 };

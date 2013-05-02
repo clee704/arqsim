@@ -112,14 +112,14 @@ GbnNode.prototype._recvS = function (frame) {
       rn = frame.rn,
       i = (rn - txbase + s) % s;
   if (rn !== txbase) return;  // ignore invalid RN
-  if (frame.func === 'RR') {
+  if (frame.func === 'ACK') {
     // All frames with sequence number <= rn are acknowledged.
     // Remove messages for acknowledged frames from buffer.
     this.txbase = (txbase + 1) % s;
     this.txuser--;
     txbuf.push();
   }
-  if (frame.func === 'REJ') {
+  if (frame.func === 'NAK') {
     // Start over the transmission from the frame whose sequence number is rn
     this.txnext = rn;
   }
@@ -144,13 +144,13 @@ GbnNode.prototype._recvI = function (frame) {
   if (sn !== this.rxnext) return;
   if (frame.error) {
     this.stats.rx = 'error';
-    this.txlink.write({type: 'S', func: 'REJ', rn: sn});
+    this.txlink.write({type: 'S', func: 'NAK', rn: sn});
   } else if (this.rxbuf === null) {
     this.rxbuf = frame.data;
     this.rxnext = (sn + 1) % this.s;
     this.stats.rx = 'accept';
     this.stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'RR', rn: sn});
+    this.txlink.write({type: 'S', func: 'ACK', rn: sn});
   }
 };
 
@@ -220,7 +220,7 @@ SrNode.prototype._recvS = function (frame) {
       rn = frame.rn,
       i = (rn - txbase + s) % s;
   if (i >= this.w) return;  // ignore invalid RN
-  if (frame.func === 'RR') {
+  if (frame.func === 'ACK') {
     // Frame RN is acknowledged.
     txack.set(i, true);
     // Remove messages for acknowledged frames from buffer.
@@ -232,7 +232,7 @@ SrNode.prototype._recvS = function (frame) {
     }
     this.txbase = txbase % s;
     this.txuser = txuser;
-  } else {  // frame.func == 'REJ'
+  } else {  // frame.func == 'NAK'
     // Start over the transmission from the frame whose sequence number is rn
     this.txnakd = rn;
   }
@@ -260,12 +260,12 @@ SrNode.prototype._recvI = function (frame) {
   if (i > this.w) return;  // ignore invalid SN
   if (frame.error) {
     stats.rx = 'error';
-    this.txlink.write({type: 'S', func: 'REJ', rn: sn});
+    this.txlink.write({type: 'S', func: 'NAK', rn: sn});
   } else if (this.rxbuf.get(i) === undefined) {
     this.rxbuf.set(i, frame.data);
     stats.rx = 'accept';
     stats.rxiframes++;
-    this.txlink.write({type: 'S', func: 'RR', rn: sn});
+    this.txlink.write({type: 'S', func: 'ACK', rn: sn});
   }
 };
 
