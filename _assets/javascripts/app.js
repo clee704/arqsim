@@ -15,16 +15,13 @@ function App() {
   this.transitionDuration = 1000;
   this.message = 0;
   this.receivedMessages = [];
-  this.timerId = 0;
-  this.prevDrawStart = 0;
-  this.prevDrawEnd = 0;
-  this.prevLoopInterval = this.loopInterval;
+  this.timerId = null;
 
   this._init();
 }
 
 App.prototype.start = function () {
-  this.timerId++;  // stop current timer (if present)
+  clearTimeout(this.timerId);  // stop current timer (if present)
   this._createObjects();
   this.message = 0;
   this.receivedMessages = [];
@@ -37,7 +34,7 @@ App.prototype.start = function () {
 };
 
 App.prototype.pause = function (paused) {
-  this.timerId++;  // stop current timer (if present)
+  clearTimeout(this.timerId);  // stop current timer (if present)
   this.paused = paused;
   if (this.started && !this.paused) this._startLoop();
   $('#pause').html(this.paused ? 'Resume' : 'Pause');
@@ -131,39 +128,27 @@ App.prototype._getParameter = function (selector) {
 
 App.prototype._prepareLoop = function () {
   this.clock.advance(this.simulationTimeStep);
-  this.prevDrawStart = Date.now();
+  var drawStart = Date.now();
   this.painter.draw();
-  this.prevDrawEnd = Date.now(),
+  var drawEnd = Date.now();
+  this.prevLoopEnd = (this.transitionDuration ? drawEnd : drawStart);
   this.prevLoopInterval = this.loopInterval;
   this.clock.advance(this.simulationTimeStep);
 };
 
 App.prototype._startLoop = function () {
   var self = this,
-      timerId = ++this.timerId;
-  d3.timer(function () {
-    if (timerId != self.timerId) return true;
-    // If transition is enabled, we should ensure that the time between
-    // the end of current painter.draw() and the start of the next
-    // painter.draw() is equal to or longer than loopInterval; otherwise
-    // animation could fail because d3 *cancels* the previous transition
-    // if a new transition is set before the previous one end.
-    //
-    // If transition is disabled, we can prevent time lag induced by the
-    // execution time of draw() by taking the difference of each start time
-    // of draw() as interval.
-    var previous = (self.transitionDuration ? self.prevDrawEnd
-                                            : self.prevDrawStart),
-        drawStart = Date.now();
-    if (drawStart - previous >= self.prevLoopInterval) {
-      self.painter.draw();
-      var drawEnd = Date.now();
-      self.clock.advance(self.simulationTimeStep);
-      self.prevDrawStart = drawStart;
-      self.prevDrawEnd = drawEnd;
-      self.prevLoopInterval = self.loopInterval;
-    }
-  });
+      drawStart = Date.now();
+  if (drawStart - this.prevLoopEnd >= this.prevLoopInterval) {
+    this.painter.draw();
+    var drawEnd = Date.now();
+    this.clock.advance(this.simulationTimeStep);
+    this.prevLoopEnd = (this.transitionDuration ? drawEnd : drawStart);
+    this.prevLoopInterval = this.loopInterval;
+  }
+  this.timerId = setTimeout(function () {
+    if (!self.paused) self._startLoop();
+  }, Math.max(this.prevLoopEnd + this.prevLoopInterval - Date.now(), 0));
 };
 
 // Mocks two nodes one sending increasing numbers to the other.
