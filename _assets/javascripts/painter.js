@@ -1,13 +1,14 @@
 function Painter() {
-  this.fps = 60;
+  this.system = null;
   this.svg = null;
   this.$svg = $();
-  this.width = null;
-  this.height = null;
-  this.nodeWidth = null;
-  this.nodeHeight = null;
-  this.margin = null;
-  this.lineHeight = null;
+
+  this.duration = 1000;
+  this.ease = {
+    frame: 'linear',
+    window: 'cubic-in-out'
+  };
+  this.prevWindowOffset = [null, null];  // tx, rx
   this.labels = [
     'SN min',
     'SN max',
@@ -19,7 +20,7 @@ function Painter() {
     '',
     'P',
     'Utilization',
-    'Time',
+    'Time'
   ];
 
   this._init();
@@ -39,15 +40,20 @@ Painter.prototype.setSystem = function (system) {
   this.svg.append('g').classed('data-frames', true);
   this.svg.append('g').classed('control-frames', true);
   this.svg.append('g').classed('nodes', true);
+  this.svg.append('g').classed('window', true)
+      .call(function () { this.append('g').classed('tx-window', true); })
+      .call(function () { this.append('g').classed('rx-window', true); });
   this.svg.append('g').classed('values', true);
+  this.prevWindowOffset = [null, null];
 };
 
-Painter.prototype.setFps = function (fps) {
-  this.fps = fps;
+Painter.prototype.setTransitionDuration = function (duration) {
+  this.duration = duration;
 };
 
 Painter.prototype.draw = function () {
   this._drawNodes();
+  this._drawWindows();
   this._drawPrimaryLink();
   this._drawSecondaryLink();
   this._displayValues();
@@ -60,7 +66,7 @@ Painter.prototype._init = function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
           self._updateDimension();
-          self.draw();
+          //self.draw();
         }, 250);
       };
   $(window).resize(callback);
@@ -70,13 +76,14 @@ Painter.prototype._init = function () {
 
 Painter.prototype._updateDimension = function () {
   var offset = this.$svg.offset();
-  this.width = this.$svg.width();
+  this.width = Math.max(this.$svg.width(), 256);
   this.height = Math.min(
       Math.min(Math.max($(window).height() - offset.top - 40, 320), 480),
       this.width);
   this.$svg.height(this.height);
   this.nodeWidth = Math.min(Math.max(this.width / 3, 100), 240);
   this.nodeHeight = this.height / 10;
+  this.windowHeight = this.system.params.w > 100 ? 0 : this.height / 40;
   this.margin = Math.max(this.width / 5 - 40, 10);
   this.lineHeight = this.height / 16;
 };
@@ -84,67 +91,67 @@ Painter.prototype._updateDimension = function () {
 Painter.prototype._drawLegend = function () {
   var defaultWidth = 100,
       defaultHeight = 30,
-      createSvg = function (selector, classes) {
-        var svg = d3.select(selector)
+      dx = defaultWidth / 2,
+      dy = defaultHeight / 2,
+      createSvg = function (options) {
+        var svg = d3.select(options.selector)
           .append('svg')
           .attr('width', defaultWidth)
           .attr('height', defaultHeight)
           .append('g')
-          .classed(classes[0], true)
-          .attr('transform', 'translate(' + (defaultWidth / 2) + ',' +
-            (defaultHeight / 2) + ')');
-        if (classes[1]) {
-          svg = svg.append('g').classed(classes[1], true);
+          .classed(options.class_, true)
+          .attr('transform', 'translate(' + dx + ',' + dy + ')');
+        if (options.innerClass) {
+          svg = svg.append('g').classed(options.innerClass, true);
         }
         return svg;
       },
-      addRect = function (svg, options) {
-        var rect = svg.append('rect')
-          .attr('x', -(defaultWidth / 2))
+      addRect = function (selection, options) {
+        return selection.append('rect')
+          .attr('x', -dx)
           .attr('y', -((options.height || defaultHeight) / 2))
           .attr('width', defaultWidth)
-          .attr('height', options.height || defaultHeight);
-        if (options.rx) {
-          rect.attr('rx', options.rx).attr('ry', options.ry);
-        }
-        return rect;
+          .attr('height', options.height || defaultHeight)
+          .call(function () {
+            if (!options.rx) return;
+            this.attr('rx', options.rx).attr('ry', options.ry);
+          });
       },
-      addText = function (svg, text) {
-        return svg.append('text').text(text);
+      addText = function (selection, options) {
+        return selection.append('text').text(options.text);
       },
       createSymbol = function (options) {
-        var svg = createSvg(options.selector, options.classes);
-        addRect(svg, options);
-        addText(svg, options.text);
-      }
+        createSvg(options).call(addRect, options).call(addText, options);
+      };
   createSymbol({
     selector: '#legend .node',
-    classes: ['nodes'],
+    class_: 'nodes',
     text: 'Name',
     rx: 5,
     ry: 5
   });
   createSymbol({
     selector: '#legend .frame',
-    classes: ['data-frames'],
+    class_: 'data-frames',
     text: 'SN'
   });
   createSymbol({
     selector: '#legend .frame.error',
-    classes: ['data-frames', 'error'],
+    class_: 'data-frames',
+    innerClass: 'error',
     text: 'SN'
   });
   createSymbol({
     selector: '#legend .ack',
-    classes: ['control-frames'],
+    class_: 'control-frames',
     text: 'ACK SN',
-    height: defaultHeight / 2
+    height: dy
   });
   createSymbol({
     selector: '#legend .nack',
-    classes: ['control-frames'],
+    class_: 'control-frames',
     text: 'NAK SN',
-    height: defaultHeight / 2
+    height: dy
   });
 };
 
@@ -153,26 +160,114 @@ Painter.prototype._drawNodes = function () {
       dx = this.margin + this.nodeWidth / 2,
       nodes = this.svg.select('.nodes')
         .selectAll('g')
-        .data([this.system.node1, this.system.node2]),
-      nodesEnter = nodes.enter().append('g');
-  nodesEnter.append('rect')
-      .attr('rx', 5)
-      .attr('ry', 5);
-  nodesEnter.append('text')
-      .text(function (d) { return d.name; });
+        .data([this.system.node1, this.system.node2]);
+  nodes.enter()
+      .append('g')
+      .call(function () {
+        this.append('rect').attr('rx', 5).attr('ry', 5);
+      })
+      .call(function () {
+        this.append('text').text(function (d) { return d.name; });
+      });
   nodes.attr('transform', function (d, i) {
     var dy = (i * self.height);
     return 'translate(' + dx + ',' + dy + ')';
   });
   nodes.select('rect')
       .attr('x', -(this.nodeWidth / 2))
-      .attr('y', -(this.nodeHeight))
+      .attr('y', -(this.nodeHeight + this.windowHeight))
       .attr('width', this.nodeWidth)
-      .attr('height', this.nodeHeight * 2);
+      .attr('height', (this.nodeHeight + this.windowHeight) * 2);
   nodes.select('text')
       .attr('y', function (d, i) {
-        return self.nodeHeight / 2 - self.nodeHeight * i;
+        return (i - 0.5) * -(self.nodeHeight + self.windowHeight * 2);
       });
+};
+
+Painter.prototype._drawWindows = function () {
+  var transmitter = this.system.node1,
+      receiver = this.system.node2;
+  this._drawWindow({
+    selector: '.tx-window',
+    y: 0,
+    offsetIndex: 0,
+    buffer: transmitter.txbuf,
+    snBase: transmitter.txbase,
+    s: transmitter.s,
+    w: transmitter.w
+  });
+  this._drawWindow({
+    selector: '.rx-window',
+    y: this.height - this.windowHeight,
+    offsetIndex: 1,
+    buffer: receiver.rxbuf,
+    snBase: receiver.rxbase,
+    s: receiver.s,
+    w: receiver.rxwin
+  });
+};
+
+Painter.prototype._drawWindow = function (args) {
+  if (this.windowHeight == 0) return;
+  var self = this,
+      w = this.width / args.w,
+      h = this.windowHeight,
+      data = args.buffer.toArray(0, args.w),
+      prevWindowOffset = self.prevWindowOffset[args.offsetIndex],
+      // Prevent glitch when simulation speed changes from very large to small
+      // or when simulation starts
+      duration = (prevWindowOffset === null) ||
+        (data[0][0] - prevWindowOffset > args.w) ? 0 : this.duration,
+      translateA = function (d, i) {
+        var dx = w * (d[0] - (prevWindowOffset || 1) + 1) + w / 2,
+            dy = args.y + h / 2;
+        return 'translate(' + dx + ',' + dy + ')';
+      },
+      translateB = function (d, i) {
+        var dx = w * (d[0] - (data[0][0] || 0)) + w / 2,
+            dy = args.y + h / 2;
+        return 'translate(' + dx + ',' + dy + ')';
+      },
+      win = this.svg.select(args.selector)
+        .attr('font-size', Math.min(w, h) * 3 / 4)
+        .selectAll('g')
+        .data(data, function (d) { return d[0]; });
+  // enter
+  win.enter()
+      .append('g')
+      .attr('transform', translateA)
+      .call(function () { this.append('rect'); })
+      .call(function () {
+        this.append('text')
+            .text(function (d, i) {
+              return (args.snBase + i) % args.s;
+            });
+      })
+      .transition()
+      .duration(duration)
+      .ease(this.ease.window)
+      .attr('transform', translateB);
+  // immediate update
+  win.classed('null', function (d) { return d[1] === null; })
+      .select('rect')
+      .attr('x', -(w / 2))
+      .attr('y', -(h / 2))
+      .attr('width', w * 127 / 128)
+      .attr('height', h);
+  // transition
+  win.transition()
+      .duration(duration)
+      .ease(this.ease.window)
+      .attr('transform', translateB);
+  // exit
+  win.exit()
+      .classed('null', function (d) { return d[1] === null; })
+      .transition()
+      .duration(duration)
+      .ease(this.ease.window)
+      .attr('transform', translateB)
+      .remove();
+  this.prevWindowOffset[args.offsetIndex] = data[0][0] + 1;
 };
 
 Painter.prototype._drawPrimaryLink = function () {
@@ -180,34 +275,44 @@ Painter.prototype._drawPrimaryLink = function () {
       system = this.system,
       currentTime = system.clock.currentTime,
       w = this.nodeWidth / 3,
-      h = (this.height - this.nodeHeight * 2) / system.params.a,
+      hOffset = this.nodeHeight + this.windowHeight,
+      h = (this.height - hOffset * 2) / system.params.a,
       dx = self.margin + self.nodeWidth / 4,
+      fontSize = Math.min(h * 2 / 3, 14),
+      translateA = function (d, i) {
+        var dy = hOffset + (currentTime - d.time) * h + h / 2;
+        return 'translate(' + dx + ',' + dy + ')';
+      },
+      translateB = function (d, i) {
+        var dy = hOffset + (currentTime - d.time + 1) * h + h / 2;
+        return 'translate(' + dx + ',' + dy + ')';
+      };
       frames = this.svg.select('.data-frames')
+        .attr('font-size', fontSize)
         .selectAll('g')
-        .data(system.link1.queue, function (d) { return d.time; }),
-      framesEnter = frames.enter()
-        .append('g')
-        .classed('error', function (d) { return d.error; });
-  framesEnter.append('rect');
-  if (h > 3) {
-    framesEnter.append('text')
-        .text(function (d) { return d.sn; });
-  }
-  frames.attr('transform', function (d, i) {
-    var dy = self.nodeHeight + (currentTime - d.time) * h + h / 2;
-    return 'translate(' + dx + ',' + dy + ')';
-  });
+        .data(system.link1.queue, function (d) { return d.time; });
+  // enter
+  frames.enter()
+      .append('g')
+      .classed('error', function (d) { return d.error; })
+      .attr('transform', translateA)
+      .call(function () { this.append('rect'); })
+      .call(function () {
+        if (fontSize < 7) return;
+        this.append('text').text(function (d) { return d.sn; });
+      });
+  // immediate update
   frames.select('rect')
-      .attr('stroke-width', Math.min(Math.max(h / 20 - 0.25, 0), 1))
-      .attr('y', -(h / 2))
-      .attr('height', h)
       .attr('x', -(w / 2))
-      .attr('width', w);
-  if (h > 3) {
-    frames.select('text').attr('font-size', Math.min(h * 2 / 3, 14));
-  } else {
-    frames.select('text').remove();
-  }
+      .attr('y', -(h / 2))
+      .attr('width', w)
+      .attr('height', h * 127 / 128);
+  // transition
+  frames.transition()
+      .duration(this.duration)
+      .ease(this.ease.frame)
+      .attr('transform', translateB);
+  // exit
   frames.exit().remove();
 };
 
@@ -216,32 +321,43 @@ Painter.prototype._drawSecondaryLink = function () {
       system = this.system,
       currentTime = system.clock.currentTime,
       w = this.nodeWidth / 3,
-      h = (this.height - this.nodeHeight * 2) / system.params.a / 3,
+      hOffset = this.nodeHeight + this.windowHeight,
+      h = (this.height - hOffset * 2) / system.params.a / 3,
       dx = this.margin + this.nodeWidth - this.nodeWidth / 4,
+      fontSize = Math.min(h * 2, 14),
+      translateA = function (d, i) {
+        var dy = (self.height - hOffset) - (currentTime - d.time) * h * 3;
+        return 'translate(' + dx + ',' + dy + ')';
+      },
+      translateB = function (d, i) {
+        var dy = (self.height - hOffset) - (currentTime - d.time + 1) * h * 3;
+        return 'translate(' + dx + ',' + dy + ')';
+      },
       frames = this.svg.select('.control-frames')
+        .attr('font-size', fontSize)
         .selectAll('g')
-        .data(system.link2.queue, function (d) { return d.time; }),
-      framesEnter = frames.enter()
-        .append('g');
-  framesEnter.append('rect');
-  if (h > 3) {
-    framesEnter.append('text')
-        .text(function (d) { return d.func + ' ' + d.sn; });
-  }
-  frames.attr('transform', function (d, i) {
-    var dy = (self.height - self.nodeHeight) - (currentTime - d.time) * h * 3;
-    return 'translate(' + dx + ',' + dy + ')';
-  });
+        .data(system.link2.queue, function (d) { return d.time; });
+  // enter
+  frames.enter()
+      .append('g')
+      .attr('transform', translateA)
+      .call(function () { this.append('rect'); })
+      .call(function () {
+        if (fontSize < 7) return;
+        this.append('text').text(function (d) { return d.func + ' ' + d.sn; });
+      });
+  // immediate update
   frames.select('rect')
-      .attr('y', -(h / 2))
-      .attr('height', h)
       .attr('x', -(w / 2))
-      .attr('width', w);
-  if (h > 3) {
-    frames.select('text').attr('font-size', Math.min(h * 2, 14));
-  } else {
-    frames.select('text').remove();
-  }
+      .attr('y', -(h / 2))
+      .attr('width', w)
+      .attr('height', h);
+  // transition
+  frames.transition()
+      .duration(this.duration)
+      .ease(this.ease.frame)
+      .attr('transform', translateB);
+  // exit
   frames.exit().remove();
 };
 
@@ -263,25 +379,28 @@ Painter.prototype._displayValues = function () {
           system.params.w,
           system.params.a,
           '',
-          receiver.currentBlockErrorRate().toFixed(6),
-          receiver.currentUtilization().toFixed(6),
-          currentTime.toPrecision(3),
+          ~~(receiver.currentBlockErrorRate() * 1e6) / 1e6,
+          ~~(receiver.currentUtilization() * 1e6) / 1e6,
+          ~~currentTime
         ]);
-  var valuesEnter = values.enter().append('g');
-  valuesEnter.append('text')
-      .classed('name', true)
-      .text(function (d, i) { return self.labels[i]; });
-  valuesEnter.append('text')
-      .classed('value', true);
+  values.enter()
+      .append('g')
+      .call(function () {
+        this.append('text').classed('name', true)
+            .text(function (d, i) { return self.labels[i]; });
+      })
+      .call(function () {
+        this.append('text').classed('value', true);
+      });
   values.select('.name')
       .attr('x', x - 5)
       .attr('y', function (d, i) {
         return (i + 2.5) * self.lineHeight;
       });
   values.select('.value')
-      .text(function (d) { return d; })
       .attr('x', x + 5)
       .attr('y', function (d, i) {
         return (i + 2.5) * self.lineHeight;
-      });
+      })
+      .text(function (d) { return d; });
 };

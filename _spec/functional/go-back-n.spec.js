@@ -74,17 +74,6 @@ describe('Go-Back-N nodes', function () {
       ]);
     });
 
-    it('should send NAK if rxbuf is full', function () {
-      transmitter.send(0);  // depart at 0, arrive at 11
-      transmitter.send(1);  // 1, 12
-      transmitter.send(2);  // 2, 13
-      clock.setTime(params.a + 3);  // time = 13
-      expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'ACK', sn: 0, time: params.a + 1},
-        {type: 'S', func: 'NAK', sn: 1, time: 1 + params.a + 1}
-      ]);
-    });
-
     it('should work as expected in a more complex case', function () {
       transmitter.send(0);
       transmitter.send(1);

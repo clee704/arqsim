@@ -66,18 +66,6 @@ describe('Selective-Reject nodes', function () {
       ]);
     });
 
-    it('should send NAK if rxbuf is full', function () {
-      for (var message = 0; message < params.w + 1; message++) {
-        transmitter.send(message);
-        clock.advance(1);
-      }
-      clock.advance(params.a + 2);
-      expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'ACK', sn: params.w - 1, time: params.w - 1 + params.a + 1},
-        {type: 'S', func: 'NAK', sn: params.w, time: params.w + params.a + 1}
-      ]);
-    });
-
     it('should work as expected in a more complex case', function () {
       transmitter.send(0);
       transmitter.send(1);

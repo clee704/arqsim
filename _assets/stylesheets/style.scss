@@ -171,10 +171,31 @@ text {
   }
 }
 
+.window {
+  text {
+    fill: white;
+  }
+  .tx-window {
+    rect {
+      fill: #999;
+    }
+    .null rect {
+      fill: skyBlue;
+    }
+  }
+  .rx-window {
+    rect {
+      fill: skyBlue;
+    }
+    .null rect {
+      fill: #999;
+    }
+  }
+}
+
 .data-frames {
   rect {
     fill: #00c000;
-    stroke: white;
   }
   text {
     fill: white;
