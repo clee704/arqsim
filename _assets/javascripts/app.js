@@ -25,7 +25,7 @@ App.prototype.start = function () {
   clearTimeout(this.loopTimer);
 
   this._createObjects();
-  this.message = 1;
+  this.message = 0;
   this.receivedMessages = [];
 
   this.painter.setSystem(this.system);
@@ -103,7 +103,7 @@ App.prototype._createObjects = function() {
   // Start the simulation at 1 second before operating
   this.clock = new Clock(-1, 13);
   this.clock.addEvent({
-    time: this.clock.timeStep,
+    time: 1 - this.clock.timeStep,
     interval: 1,
     func: function () { self._operate(); }
   });
@@ -112,7 +112,6 @@ App.prototype._createObjects = function() {
   this.transmitter.setName('Transmitter');
   this.receiver = this.system.node2;
   this.receiver.setName('Receiver');
-
 };
 
 App.prototype._getParameter = function (selector) {
@@ -158,8 +157,10 @@ App.prototype._operate = function () {
   this.receivedMessages = this.receiver.recv();
   // Do something
   try {
-    this.transmitter.send(this.message);
-    this.message++;
+    while (true) {
+      this.transmitter.send(this.message);
+      this.message++;
+    }
   } catch (e) {
     // Transmitter may throw an error if its buffer is full
   }
