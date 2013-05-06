@@ -33,13 +33,6 @@ describe('Selective-Reject nodes', function () {
       expect(receiver.recv()).toEqual([]);
     });
 
-    it('should reject data from upper layer when txbuf is full', function () {
-      for (var i = 0; i < params.w + 1; i++) {
-        transmitter.send('foo');
-      }
-      expect(function () { transmitter.send('foo'); }).toThrow('buffer full');
-    });
-
     it('should not ignore packets after sending NAK', function () {
       var message = 0;
       clock.addEvent({

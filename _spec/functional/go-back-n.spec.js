@@ -42,15 +42,6 @@ describe('Go-Back-N nodes', function () {
       ]);
     })
 
-    it('should reject data from upper layer when txbuf is full', function () {
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      expect(function () { transmitter.send('foo'); }).toThrow('buffer full');
-    });
-
     it('should ignore packets after sending NAK', function () {
       var message = 0;
       clock.addEvent({
