@@ -157,6 +157,8 @@ output {
 
 svg {
   vertical-align: middle;  // Removes bottom margin
+  width: 100%;
+  display: block;
 }
 
 text {
