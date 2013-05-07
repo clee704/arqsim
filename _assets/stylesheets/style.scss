@@ -149,6 +149,7 @@ output {
 
 .svg-container {
   margin-bottom: 20px;
+  overflow: hidden;
   #display & {
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -157,6 +158,8 @@ output {
 
 svg {
   vertical-align: middle;  // Removes bottom margin
+  width: 100%;
+  display: block;
 }
 
 text {
