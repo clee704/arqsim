@@ -36,6 +36,7 @@ Painter.prototype.setSystem = function (system) {
       .append('div')
       .classed('svg-container', true)
       .append('svg')
+      .classed('block', true)
       .attr('width', "100%")
       .attr('height', this.height);
   this.$svg = $('#display svg');
