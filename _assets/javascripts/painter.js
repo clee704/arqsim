@@ -9,9 +9,6 @@ function Painter() {
     window: 'cubic-in-out'
   };
   this.prevWindowOffset = [null, null];  // tx, rx
-  this.prevData = {
-    window: []
-  };
   this.labels = [
     'SN min',
     'SN max',
@@ -207,8 +204,7 @@ Painter.prototype._drawWindow = function (args) {
   var self = this,
       w = this.width / args.w,
       h = this.windowHeight,
-      data = args.instant ? this.prevData.window[args.offsetIndex]
-                          : args.buffer.toArray(0, args.w),
+      data = args.buffer.toArray(0, args.w),
       prevWindowOffset = self.prevWindowOffset[args.offsetIndex],
       // Prevent glitch when simulation speed changes from very large to small
       // or when simulation starts
@@ -265,7 +261,6 @@ Painter.prototype._drawWindow = function (args) {
       .attr('transform', translateB)
       .remove();
   this.prevWindowOffset[args.offsetIndex] = data[0][0] + 1;
-  this.prevData.window[args.offsetIndex] = data;
 };
 
 Painter.prototype._drawPrimaryLink = function (instant) {
@@ -277,7 +272,7 @@ Painter.prototype._drawPrimaryLink = function (instant) {
       h = (this.height - hOffset * 2) / system.params.a,
       dx = self.margin + self.nodeWidth / 4,
       fontSize = Math.min(h * 2 / 3, 14),
-      data = instant ? this.prevData.primaryLink : system.link1.queue,
+      data = system.link1.queue,
       translateA = function (d, i) {
         var dy = hOffset + (currentTime - d.time) * h + h / 2;
         return 'translate(' + dx + ',' + dy + ')';
@@ -313,7 +308,6 @@ Painter.prototype._drawPrimaryLink = function (instant) {
       .attr('transform', translateB);
   // exit
   dataFrames.exit().remove();
-  this.prevData.primaryLink = data;
 };
 
 Painter.prototype._drawSecondaryLink = function (instant) {
@@ -325,7 +319,7 @@ Painter.prototype._drawSecondaryLink = function (instant) {
       h = (this.height - hOffset * 2) / system.params.a / 3,
       dx = this.margin + this.nodeWidth - this.nodeWidth / 4,
       fontSize = Math.min(h * 2, 14),
-      data = instant ? this.prevData.secondaryLink : system.link2.queue,
+      data = system.link2.queue,
       translateA = function (d, i) {
         var dy = (self.height - hOffset) - (currentTime - d.time) * h * 3;
         return 'translate(' + dx + ',' + dy + ')';
@@ -360,7 +354,6 @@ Painter.prototype._drawSecondaryLink = function (instant) {
       .attr('transform', translateB);
   // exit
   controlFrames.exit().remove();
-  this.prevData.secondaryLink = data;
 };
 
 Painter.prototype._displayValues = function (instant) {
@@ -370,7 +363,7 @@ Painter.prototype._displayValues = function (instant) {
       receiver = system.node2,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
-      data = instant ? this.prevData.values : [
+      data = [
         transmitter.txbase,
         (transmitter.txbase + transmitter.w - 1) % transmitter.s,
         transmitter.txnext,
@@ -406,5 +399,4 @@ Painter.prototype._displayValues = function (instant) {
         return (i + 2.5) * self.lineHeight;
       })
       .text(function (d) { return d; });
-  this.prevData.values = data;
 };
