@@ -70,8 +70,7 @@ CircularBuffer.prototype.toString = function () {
   var temp = [],
       n = this.length;
   for (var i = 0; i < n; ++i) {
-    var element = this.get(i);
-    temp.push(element === undefined ? 'undefined' : element);
+    temp.push(this.get(i));
   }
   return '[' + temp.join(', ') + ']';
 };
