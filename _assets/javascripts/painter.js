@@ -9,6 +9,9 @@ function Painter() {
     window: 'cubic-in-out'
   };
   this.prevWindowOffset = [null, null];  // tx, rx
+  this.prevData = {
+    window: []
+  };
   this.labels = [
     'SN min',
     'SN max',
@@ -36,7 +39,6 @@ Painter.prototype.setSystem = function (system) {
       .attr('width', "100%")
       .attr('height', this.height);
   this.$svg = $('#display svg');
-  this._updateDimension();
   this.svg.append('g').classed('data-frames', true);
   this.svg.append('g').classed('control-frames', true);
   this.svg.append('g').classed('nodes', true);
@@ -45,36 +47,22 @@ Painter.prototype.setSystem = function (system) {
       .call(function () { this.append('g').classed('rx-window', true); });
   this.svg.append('g').classed('values', true);
   this.prevWindowOffset = [null, null];
+  this.resize();
 };
 
 Painter.prototype.setTransitionDuration = function (duration) {
   this.duration = duration;
 };
 
-Painter.prototype.draw = function () {
-  this._drawNodes();
-  this._drawWindows();
-  this._drawPrimaryLink();
-  this._drawSecondaryLink();
-  this._displayValues();
+Painter.prototype.draw = function (instant) {
+  this._drawNodes(instant);
+  this._drawWindows(instant);
+  this._drawPrimaryLink(instant);
+  this._drawSecondaryLink(instant);
+  this._displayValues(instant);
 };
 
-Painter.prototype._init = function () {
-  var self = this,
-      resizeTimer,
-      callback = function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          self._updateDimension();
-          //self.draw();
-        }, 250);
-      };
-  $(window).resize(callback);
-  $('[data-toggle="collapse"]').click(callback);
-  this._drawLegend();
-};
-
-Painter.prototype._updateDimension = function () {
+Painter.prototype.resize = function () {
   var offset = this.$svg.offset();
   this.width = Math.max(this.$svg.width(), 256);
   this.height = Math.min(
@@ -86,6 +74,10 @@ Painter.prototype._updateDimension = function () {
   this.windowHeight = this.system.params.w > 100 ? 0 : this.height / 40;
   this.margin = Math.max(this.width / 5 - 40, 10);
   this.lineHeight = this.height / 16;
+};
+
+Painter.prototype._init = function () {
+  this._drawLegend();
 };
 
 Painter.prototype._drawLegend = function () {
@@ -155,7 +147,7 @@ Painter.prototype._drawLegend = function () {
   });
 };
 
-Painter.prototype._drawNodes = function () {
+Painter.prototype._drawNodes = function (_) {
   var self = this,
       dx = this.margin + this.nodeWidth / 2,
       nodes = this.svg.select('.nodes')
@@ -184,7 +176,7 @@ Painter.prototype._drawNodes = function () {
       });
 };
 
-Painter.prototype._drawWindows = function () {
+Painter.prototype._drawWindows = function (instant) {
   var transmitter = this.system.node1,
       receiver = this.system.node2;
   this._drawWindow({
@@ -194,7 +186,8 @@ Painter.prototype._drawWindows = function () {
     buffer: transmitter.txbuf,
     snBase: transmitter.txbase,
     s: transmitter.s,
-    w: transmitter.w
+    w: transmitter.w,
+    instant: instant
   });
   this._drawWindow({
     selector: '.rx-window',
@@ -203,7 +196,8 @@ Painter.prototype._drawWindows = function () {
     buffer: receiver.rxbuf,
     snBase: receiver.rxbase,
     s: receiver.s,
-    w: receiver.rxwin
+    w: receiver.rxwin,
+    instant: instant
   });
 };
 
@@ -212,12 +206,14 @@ Painter.prototype._drawWindow = function (args) {
   var self = this,
       w = this.width / args.w,
       h = this.windowHeight,
-      data = args.buffer.toArray(0, args.w),
+      data = args.instant ? this.prevData.window[args.offsetIndex]
+                          : args.buffer.toArray(0, args.w),
       prevWindowOffset = self.prevWindowOffset[args.offsetIndex],
       // Prevent glitch when simulation speed changes from very large to small
       // or when simulation starts
-      duration = (prevWindowOffset === null) ||
-        (data[0][0] - prevWindowOffset > args.w) ? 0 : this.duration,
+      duration = args.instant ? 0
+        : (prevWindowOffset === null) ||
+          (data[0][0] - prevWindowOffset > args.w) ? 0 : this.duration,
       translateA = function (d, i) {
         var dx = w * (d[0] - (prevWindowOffset || 1) + 1) + w / 2,
             dy = args.y + h / 2;
@@ -268,9 +264,10 @@ Painter.prototype._drawWindow = function (args) {
       .attr('transform', translateB)
       .remove();
   this.prevWindowOffset[args.offsetIndex] = data[0][0] + 1;
+  this.prevData.window[args.offsetIndex] = data;
 };
 
-Painter.prototype._drawPrimaryLink = function () {
+Painter.prototype._drawPrimaryLink = function (instant) {
   var self = this,
       system = this.system,
       currentTime = system.clock.currentTime,
@@ -279,6 +276,7 @@ Painter.prototype._drawPrimaryLink = function () {
       h = (this.height - hOffset * 2) / system.params.a,
       dx = self.margin + self.nodeWidth / 4,
       fontSize = Math.min(h * 2 / 3, 14),
+      data = instant ? this.prevData.primaryLink : system.link1.queue,
       translateA = function (d, i) {
         var dy = hOffset + (currentTime - d.time) * h + h / 2;
         return 'translate(' + dx + ',' + dy + ')';
@@ -290,7 +288,7 @@ Painter.prototype._drawPrimaryLink = function () {
       frames = this.svg.select('.data-frames')
         .attr('font-size', fontSize)
         .selectAll('g')
-        .data(system.link1.queue, function (d) { return d.time; });
+        .data(data, function (d) { return d.time; });
   // enter
   frames.enter()
       .append('g')
@@ -309,14 +307,15 @@ Painter.prototype._drawPrimaryLink = function () {
       .attr('height', h * 127 / 128);
   // transition
   frames.transition()
-      .duration(this.duration)
+      .duration(instant ? 0 : this.duration)
       .ease(this.ease.frame)
       .attr('transform', translateB);
   // exit
   frames.exit().remove();
+  this.prevData.primaryLink = data;
 };
 
-Painter.prototype._drawSecondaryLink = function () {
+Painter.prototype._drawSecondaryLink = function (instant) {
   var self = this,
       system = this.system,
       currentTime = system.clock.currentTime,
@@ -325,6 +324,7 @@ Painter.prototype._drawSecondaryLink = function () {
       h = (this.height - hOffset * 2) / system.params.a / 3,
       dx = this.margin + this.nodeWidth - this.nodeWidth / 4,
       fontSize = Math.min(h * 2, 14),
+      data = instant ? this.prevData.secondaryLink : system.link2.queue,
       translateA = function (d, i) {
         var dy = (self.height - hOffset) - (currentTime - d.time) * h * 3;
         return 'translate(' + dx + ',' + dy + ')';
@@ -336,7 +336,7 @@ Painter.prototype._drawSecondaryLink = function () {
       frames = this.svg.select('.control-frames')
         .attr('font-size', fontSize)
         .selectAll('g')
-        .data(system.link2.queue, function (d) { return d.time; });
+        .data(data, function (d) { return d.time; });
   // enter
   frames.enter()
       .append('g')
@@ -354,35 +354,37 @@ Painter.prototype._drawSecondaryLink = function () {
       .attr('height', h);
   // transition
   frames.transition()
-      .duration(this.duration)
+      .duration(instant ? 0 : this.duration)
       .ease(this.ease.frame)
       .attr('transform', translateB);
   // exit
   frames.exit().remove();
+  this.prevData.secondaryLink = data;
 };
 
-Painter.prototype._displayValues = function () {
+Painter.prototype._displayValues = function (instant) {
   var self = this,
       system = this.system,
       transmitter = system.node1,
       receiver = system.node2,
       currentTime = system.clock.currentTime,
       x = this.width / 2 + (this.margin + this.nodeWidth) / 2,
+      data = instant ? this.prevData.values : [
+        transmitter.txbase,
+        (transmitter.txbase + transmitter.w - 1) % transmitter.s,
+        transmitter.txnext,
+        '',
+        system.params.protocol,
+        system.params.w,
+        system.params.a,
+        '',
+        ~~(receiver.currentBlockErrorRate() * 1e6) / 1e6,
+        ~~(receiver.currentUtilization() * 1e6) / 1e6,
+        ~~currentTime
+      ],
       values = this.svg.select('.values')
         .selectAll('g')
-        .data([
-          transmitter.txbase,
-          (transmitter.txbase + transmitter.w - 1) % transmitter.s,
-          transmitter.txnext,
-          '',
-          system.params.protocol,
-          system.params.w,
-          system.params.a,
-          '',
-          ~~(receiver.currentBlockErrorRate() * 1e6) / 1e6,
-          ~~(receiver.currentUtilization() * 1e6) / 1e6,
-          ~~currentTime
-        ]);
+        .data(data);
   values.enter()
       .append('g')
       .call(function () {
@@ -403,4 +405,5 @@ Painter.prototype._displayValues = function () {
         return (i + 2.5) * self.lineHeight;
       })
       .text(function (d) { return d; });
+  this.prevData.values = data;
 };

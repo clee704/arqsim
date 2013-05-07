@@ -89,6 +89,16 @@ App.prototype._bindListeners = function () {
     self.pause(!self.paused);
     return false;
   });
+  var resizeTimer,
+      resizeCallback = function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          self.painter.resize();
+          self.painter.draw(true);
+        }, 250);
+      };
+  $(window).resize(resizeCallback);
+  $('[data-toggle="collapse"]').click(resizeCallback);
 };
 
 App.prototype._updateControls = function () {
@@ -127,25 +137,25 @@ App.prototype._getParameter = function (selector) {
 };
 
 App.prototype._prepareLoop = function () {
+  var loopStart = Date.now();
   this.clock.advance(this.simulationTimeStep);
-  var drawStart = Date.now();
   this.painter.draw();
-  var drawEnd = Date.now();
-  this.prevLoopEnd = (this.transitionDuration ? drawEnd : drawStart);
+  var loopEnd = Date.now();
+  this.prevLoopEnd = (this.transitionDuration ? loopEnd : loopStart);
   this.prevLoopInterval = this.loopInterval;
-  this.clock.advance(this.simulationTimeStep);
 };
 
 App.prototype._startLoop = function () {
   var self = this,
-      drawStart = Date.now();
-  if (drawStart - this.prevLoopEnd >= this.prevLoopInterval) {
-    this.painter.draw();
-    var drawEnd = Date.now();
+      loopStart = Date.now();
+  if (loopStart - this.prevLoopEnd >= this.prevLoopInterval) {
     this.clock.advance(this.simulationTimeStep);
-    this.prevLoopEnd = (this.transitionDuration ? drawEnd : drawStart);
+    this.painter.draw();
+    var loopEnd = Date.now();
+    this.prevLoopEnd = (this.transitionDuration ? loopEnd : loopStart);
     this.prevLoopInterval = this.loopInterval;
   }
+  if (this.paused) return;
   this.timerId = setTimeout(function () {
     if (!self.paused) self._startLoop();
   }, Math.max(this.prevLoopEnd + this.prevLoopInterval - Date.now(), 0));
