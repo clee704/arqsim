@@ -33,7 +33,11 @@ Link.prototype.write = function (frame) {
   if (frame.type === 'I') {
     frame.time = time + 1;  // +1 for packet length
     // Make errors with probability p
-    if (Math.random() < this.p) frame.error = 1;
+    if (Math.random() < this.p) {
+      frame.error = 1;
+    } else {
+      delete frame.error;
+    }
     queue.push(frame);
   } else {
     // Insert the frame in the queue at the right position

@@ -50,13 +50,13 @@
                 <label for='protocol'>Protocol:</label>
                 <select id='protocol' class='input-medium'>
                   <option value='GBN'>Go-Back-N</option>
-                  <option value='SR'>Selective Reject</option>
+                  <option value='SR' selected>Selective Reject</option>
                 </select>
               </div>
               <div class='param clearfix'>
                 <div class='label-and-input'>
                   <label for='w'><var>W</var> =</label>
-                  <input id='w' max='1023' min='1' type='number' value='7' data-round='1' class='input-small'>
+                  <input id='w' max='1023' min='1' type='number' value='13' data-round='1' class='input-small'>
                 </div>
                 <div class='help-block'>
                   Window size
@@ -76,7 +76,7 @@
               <div class='param clearfix'>
                 <div class='label-and-input'>
                   <label class='control-label' for='p'><var>P</var> =</label>
-                  <input id='p' max='1' min='0' step='any' type='number' value='0.05' class='input-small'>
+                  <input id='p' max='1' min='0' step='any' type='number' value='0.1' class='input-small'>
                 </div>
                 <div class='help-block'>
                   Block error rate;

@@ -33,13 +33,6 @@ describe('Selective-Reject nodes', function () {
       expect(receiver.recv()).toEqual([]);
     });
 
-    it('should reject data from upper layer when txbuf is full', function () {
-      for (var i = 0; i < params.w + 1; i++) {
-        transmitter.send('foo');
-      }
-      expect(function () { transmitter.send('foo'); }).toThrow('buffer full');
-    });
-
     it('should not ignore packets after sending NAK', function () {
       var message = 0;
       clock.addEvent({
@@ -70,18 +63,6 @@ describe('Selective-Reject nodes', function () {
         {type: 'S', func: 'ACK', sn: 0, time: params.a + 1},
         {type: 'S', func: 'NAK', sn: 1, time: 1 + params.a + 1},
         {type: 'S', func: 'ACK', sn: 2, time: 2 + params.a + 1}
-      ]);
-    });
-
-    it('should send NAK if rxbuf is full', function () {
-      for (var message = 0; message < params.w + 1; message++) {
-        transmitter.send(message);
-        clock.advance(1);
-      }
-      clock.advance(params.a + 2);
-      expect(receiver.txlink.queue).toEqual([
-        {type: 'S', func: 'ACK', sn: params.w - 1, time: params.w - 1 + params.a + 1},
-        {type: 'S', func: 'NAK', sn: params.w, time: params.w + params.a + 1}
       ]);
     });
 

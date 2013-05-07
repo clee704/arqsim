@@ -4,39 +4,37 @@ function App() {
   this.transmitter = null;
   this.receiver = null;
   this.system = null;
-
-  // data
-  this.message = null;
-  this.receivedMessages = null;
+  this.painter = new Painter;
 
   // app states
-  this.started = null;
-  this.paused = null;
-  this.simulationSpeed = null;
-
-  // others
-  this.painter = new Painter();
-  this.loopTimer = null;
+  this.started = false;
+  this.paused = false;
+  this.simulationSpeed = 1;
+  this.simulationTimeStep = 1;
+  this.loopInterval = 1000;
+  this.transitionDuration = 1000;
+  this.message = 0;
+  this.receivedMessages = [];
+  this.timerId = null;
 
   this._init();
 }
 
 App.prototype.start = function () {
-  clearTimeout(this.loopTimer);
-
+  clearTimeout(this.timerId);  // stop current timer (if present)
   this._createObjects();
-  this.message = 1;
+  this.message = 0;
   this.receivedMessages = [];
-
   this.painter.setSystem(this.system);
-
   this.started = true;
-  this.pause(false);
+  this._prepareLoop();
+  this.pause(false);  // start loop
   $('#pause').show();
   $('#start').text('Start new');
 };
 
 App.prototype.pause = function (paused) {
+  clearTimeout(this.timerId);  // stop current timer (if present)
   this.paused = paused;
   if (this.started && !this.paused) this._startLoop();
   $('#pause').html(this.paused ? 'Resume' : 'Pause');
@@ -51,17 +49,18 @@ App.prototype.getParameters = function () {
   };
 };
 
-App.prototype.setFps = function (value) {
-  this.painter.setFps(value);
-};
-
 App.prototype.setSimulationSpeed = function (value) {
   if (value < $('#simulation-speed-slider').slider('option', 'min') ||
       value > $('#simulation-speed-slider').slider('option', 'max')) {
     return;
   }
-  this.simulationSpeed = Math.pow(10, value / 50);
-  $('#simulation-speed').html(this.simulationSpeed.toFixed(1));
+  var speed = Math.pow(10, value / 50);
+  this.simulationSpeed = speed;
+  this.simulationTimeStep = Math.ceil(speed / 60);
+  this.loopInterval = 1000 * this.simulationTimeStep / speed;
+  this.transitionDuration = this.simulationTimeStep == 1 ? this.loopInterval : 0;
+  this.painter.setTransitionDuration(this.transitionDuration);
+  $('#simulation-speed').html(speed.toFixed(1));
   $('#simulation-speed-slider').slider('value', value);
 };
 
@@ -90,6 +89,16 @@ App.prototype._bindListeners = function () {
     self.pause(!self.paused);
     return false;
   });
+  var resizeTimer,
+      resizeCallback = function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          self.painter.resize();
+          self.painter.draw(true);
+        }, 250);
+      };
+  $(window).resize(resizeCallback);
+  $('[data-toggle="collapse"]').click(resizeCallback);
 };
 
 App.prototype._updateControls = function () {
@@ -103,7 +112,7 @@ App.prototype._createObjects = function() {
   // Start the simulation at 1 second before operating
   this.clock = new Clock(-1, 13);
   this.clock.addEvent({
-    time: this.clock.timeStep,
+    time: 1 - this.clock.timeStep,
     interval: 1,
     func: function () { self._operate(); }
   });
@@ -112,7 +121,6 @@ App.prototype._createObjects = function() {
   this.transmitter.setName('Transmitter');
   this.receiver = this.system.node2;
   this.receiver.setName('Receiver');
-
 };
 
 App.prototype._getParameter = function (selector) {
@@ -128,38 +136,40 @@ App.prototype._getParameter = function (selector) {
   return param;
 };
 
-// Call this._tick() this.painter.fps times per second.
-// If the computation is too heavy (usually due to too high simulation speed),
-// this._tick() may exceed the time it was assigned
-// (1 / this.painter.fps seconds). In that case, both frame rate and simulation
-// speed can be lower than user-specified value.
+App.prototype._prepareLoop = function () {
+  var loopStart = Date.now();
+  this.clock.advance(this.simulationTimeStep);
+  this.painter.draw();
+  var loopEnd = Date.now();
+  this.prevLoopEnd = (this.transitionDuration ? loopEnd : loopStart);
+  this.prevLoopInterval = this.loopInterval;
+};
+
 App.prototype._startLoop = function () {
   var self = this,
-      currentLoopTime = Date.now();
-  this._tick();
-  this.loopTimer = setTimeout(function () {
-    if (!self.paused) self._startLoop();
-  }, Math.max(0, 1000 / this.painter.fps - Date.now() + currentLoopTime));
-};
-
-App.prototype._tick = function () {
-  try {
-    this.clock.advance(this.simulationSpeed / this.painter.fps);
-  } catch (ex) {
-    alert(ex);
-    throw ex;  // brutal way to stop the loop
+      loopStart = Date.now();
+  if (loopStart - this.prevLoopEnd >= this.prevLoopInterval) {
+    this.clock.advance(this.simulationTimeStep);
+    this.painter.draw();
+    var loopEnd = Date.now();
+    this.prevLoopEnd = (this.transitionDuration ? loopEnd : loopStart);
+    this.prevLoopInterval = this.loopInterval;
   }
-  this.painter.draw();
+  if (this.paused) return;
+  this.timerId = setTimeout(function () {
+    if (!self.paused) self._startLoop();
+  }, Math.max(this.prevLoopEnd + this.prevLoopInterval - Date.now(), 0));
 };
 
-// Implicitly called by this.clock.advance() in this._tick().
-// It mocks two nodes one sending increasing numbers every second to the other.
+// Mocks two nodes one sending increasing numbers to the other.
 App.prototype._operate = function () {
   this.receivedMessages = this.receiver.recv();
   // Do something
   try {
-    this.transmitter.send(this.message);
-    this.message++;
+    while (true) {
+      this.transmitter.send(this.message);
+      this.message++;
+    }
   } catch (e) {
     // Transmitter may throw an error if its buffer is full
   }

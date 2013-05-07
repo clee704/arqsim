@@ -42,15 +42,6 @@ describe('Go-Back-N nodes', function () {
       ]);
     })
 
-    it('should reject data from upper layer when txbuf is full', function () {
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      transmitter.send('foo');
-      expect(function () { transmitter.send('foo'); }).toThrow('buffer full');
-    });
-
     it('should ignore packets after sending NAK', function () {
       var message = 0;
       clock.addEvent({
@@ -78,17 +69,6 @@ describe('Go-Back-N nodes', function () {
       Math.random.andReturn(1);
       clock.advance(params.a + 2);
       expect(transmitter.rxlink.queue).toEqual([
-        {type: 'S', func: 'ACK', sn: 0, time: params.a + 1},
-        {type: 'S', func: 'NAK', sn: 1, time: 1 + params.a + 1}
-      ]);
-    });
-
-    it('should send NAK if rxbuf is full', function () {
-      transmitter.send(0);  // depart at 0, arrive at 11
-      transmitter.send(1);  // 1, 12
-      transmitter.send(2);  // 2, 13
-      clock.setTime(params.a + 3);  // time = 13
-      expect(receiver.txlink.queue).toEqual([
         {type: 'S', func: 'ACK', sn: 0, time: params.a + 1},
         {type: 'S', func: 'NAK', sn: 1, time: 1 + params.a + 1}
       ]);
