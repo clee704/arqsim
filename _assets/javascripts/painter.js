@@ -246,7 +246,7 @@ Painter.prototype._drawWindow = function (args) {
   // immediate update
   win.classed('null', function (d) { return d[1] === null; })
       .select('rect')
-      .attr('x', -(w / 2))
+      .attr('x', -(w * 127 / 128 / 2))
       .attr('y', -(h / 2))
       .attr('width', w * 127 / 128)
       .attr('height', h);
@@ -302,7 +302,7 @@ Painter.prototype._drawPrimaryLink = function (instant) {
   // immediate update
   dataFrames.select('rect')
       .attr('x', -(w / 2))
-      .attr('y', -(h / 2))
+      .attr('y', -(h * 127 / 128 / 2))
       .attr('width', w)
       .attr('height', h * 127 / 128);
   // transition
