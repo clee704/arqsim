@@ -93,6 +93,7 @@ App.prototype._bindListeners = function () {
       resizeCallback = function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
+          if (self.system === null) return;
           self.painter.resize();
           self.painter.draw(true);
         }, 250);

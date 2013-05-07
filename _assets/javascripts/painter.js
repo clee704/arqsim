@@ -63,7 +63,7 @@ Painter.prototype.draw = function (instant) {
 };
 
 Painter.prototype.resize = function () {
-  var offset = this.$svg.offset();
+  var offset = this.$svg.offset() || {top: 0};
   this.width = Math.max(this.$svg.width(), 256);
   this.height = Math.min(
       Math.min(Math.max($(window).height() - offset.top - 40, 320), 480),
