@@ -285,12 +285,12 @@ Painter.prototype._drawPrimaryLink = function (instant) {
         var dy = hOffset + (currentTime - d.time + 1) * h + h / 2;
         return 'translate(' + dx + ',' + dy + ')';
       };
-      frames = this.svg.select('.data-frames')
+      dataFrames = this.svg.select('.data-frames')
         .attr('font-size', fontSize)
         .selectAll('g')
         .data(data, function (d) { return d.time; });
   // enter
-  frames.enter()
+  dataFrames.enter()
       .append('g')
       .classed('error', function (d) { return d.error; })
       .attr('transform', translateA)
@@ -300,18 +300,18 @@ Painter.prototype._drawPrimaryLink = function (instant) {
         this.append('text').text(function (d) { return d.sn; });
       });
   // immediate update
-  frames.select('rect')
+  dataFrames.select('rect')
       .attr('x', -(w / 2))
       .attr('y', -(h / 2))
       .attr('width', w)
       .attr('height', h * 127 / 128);
   // transition
-  frames.transition()
+  dataFrames.transition()
       .duration(instant ? 0 : this.duration)
       .ease(this.ease.frame)
       .attr('transform', translateB);
   // exit
-  frames.exit().remove();
+  dataFrames.exit().remove();
   this.prevData.primaryLink = data;
 };
 
@@ -333,12 +333,12 @@ Painter.prototype._drawSecondaryLink = function (instant) {
         var dy = (self.height - hOffset) - (currentTime - d.time + 1) * h * 3;
         return 'translate(' + dx + ',' + dy + ')';
       },
-      frames = this.svg.select('.control-frames')
+      controlFrames = this.svg.select('.control-frames')
         .attr('font-size', fontSize)
         .selectAll('g')
         .data(data, function (d) { return d.time; });
   // enter
-  frames.enter()
+  controlFrames.enter()
       .append('g')
       .attr('transform', translateA)
       .call(function () { this.append('rect'); })
@@ -347,18 +347,18 @@ Painter.prototype._drawSecondaryLink = function (instant) {
         this.append('text').text(function (d) { return d.func + ' ' + d.sn; });
       });
   // immediate update
-  frames.select('rect')
+  controlFrames.select('rect')
       .attr('x', -(w / 2))
       .attr('y', -(h / 2))
       .attr('width', w)
       .attr('height', h);
   // transition
-  frames.transition()
+  controlFrames.transition()
       .duration(instant ? 0 : this.duration)
       .ease(this.ease.frame)
       .attr('transform', translateB);
   // exit
-  frames.exit().remove();
+  controlFrames.exit().remove();
   this.prevData.secondaryLink = data;
 };
 
